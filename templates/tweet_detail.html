@@ -1,8 +1,16 @@
 {% extends "base.html" %} {% from "tweet_conversation.html" import
-render_tweet_conversation %} {% block title %}推文详情 - LocalTwitter{%
-endblock %} {% block content %}
+render_tweet_conversation %} {% block title %}推文详情 - LocalTwitter{% endblock
+%} {% block content %}
 <div class="header">
-  <h1>推文详情</h1>
+  <div class="header-left">
+    <button class="back-button" onclick="goBack()">
+      <i class="fas fa-arrow-left"></i>
+    </button>
+    <h1>推文详情</h1>
+  </div>
+  <button id="theme-toggle" class="theme-toggle">
+    <i class="fas fa-moon"></i>
+  </button>
 </div>
 
 <div class="nav">
@@ -67,4 +75,18 @@ endblock %} {% block content %}
   </div>
   {% endfor %}
 </div>
-{% endif %} {% endblock %}
+{% endif %}
+
+<script>
+  function goBack() {
+    if (
+      document.referrer &&
+      document.referrer.includes(window.location.origin)
+    ) {
+      window.history.back();
+    } else {
+      window.location.href = "/";
+    }
+  }
+</script>
+{% endblock %}
