@@ -1,78 +1,61 @@
-# Twitter 数据处理脚本
+# Twitter Backup Processor & Viewer
 
-这是一个用于处理 Twitter 备份数据的 Python 脚本，可以读取 JSON 格式的推文数据，将其存储到 SQLite 数据库中，并下载相关的图片和视频文件。同时提供了一个功能完整的 Web 界面来浏览和搜索数据。
+A Python toolkit to process Twitter backup JSON files into a local SQLite database, and a full-featured web UI to browse and search your data. It can also associate local media files (images/videos) and supports multi-provider translation (OpenAI/Google/Baidu/Youdao/DeepL) via the web UI.
 
-## 功能特性
+[中文说明](README_zh.md)
 
-### 数据处理脚本 (twitter_data_processor.py)
+## Features
 
-1. **JSON 数据处理**: 读取`twitter-meta`文件夹中的所有 JSON 文件
-2. **数据库存储**: 将数据保存到 SQLite 数据库中，包含推文、用户和媒体文件信息
-3. **媒体文件关联**: 自动关联`img`文件夹中的图片/视频文件
-4. **头像下载**: 自动下载用户的`profile_banner`和`profile_image`到`avatar`文件夹
-5. **重复下载避免**: 使用哈希值避免重复下载相同的图片
-6. **统计信息**: 提供数据库统计信息查询功能
-7. **数据库升级**: 自动升级数据库结构，添加新字段
+- Data Processor (`twitter_data_processor.py`)
 
-### Web 查看器 (twitter_viewer.py)
+  - Read all JSON files in `twitter-meta/`
+  - Store tweets, users, and media references into SQLite
+  - Associate files in `img/` with tweets by filename convention
+  - Download user `profile_banner` and `profile_image` into `avatar/`
+  - Avoid duplicate downloads via URL hash tracking
+  - Quick database stats (`--stats`)
+  - Automatic DB migration for new columns
 
-1. **时间线浏览**: 按时间顺序显示所有推文，支持分页
-2. **用户资料**: 查看用户详细信息、头像和推文列表
-3. **推文详情**: 查看单条推文的完整信息和相关推文
-4. **搜索功能**: 支持按内容、年份、月份搜索推文
-5. **统计页面**: 显示数据概览、最活跃用户、最受欢迎推文
-6. **媒体文件支持**: 自动显示图片、视频、头像和横幅图片
-7. **推文类型识别**: 自动识别转发、回复、引用推文并正确显示
-8. **多语言翻译**: 集成 OpenAI API，支持将推文翻译成 12 种语言
+- Web Viewer (`twitter_viewer.py`)
+  - Timeline browsing with pagination
+  - User profile pages with avatar/banner and user stats
+  - Tweet detail page with related tweets
+  - Powerful search by content/year/month
+  - Stats page (overview, top tweets, etc.)
+  - Media display (images/videos/avatars/banners)
+  - Tweet types: retweet/reply/quote handling
+  - Integrated translation with selectable provider and model
+  - Modern responsive UI with light/dark theme
 
-## 文件夹结构要求
+## Required directory layout (for your data folder)
 
 ```
 your_data_folder/
-├── twitter-meta/          # 包含JSON文件的文件夹
+├── twitter-meta/          # JSON metadata files
 │   ├── 1448196924784328704.json
 │   ├── 1448196924784328705.json
 │   └── ...
-├── img/                   # 包含媒体文件的文件夹（可选）
+├── img/                   # Optional: local media files (images/videos)
 │   ├── 1448196924784328704_1.jpg
 │   ├── 1448196924784328704_2.jpg
 │   ├── 1448196924784328704_1.mp4
 │   └── ...
-└── avatar/                # 头像文件下载文件夹（自动创建）
+└── avatar/                # Created automatically for downloaded avatars/banners
     ├── banner_832500321955962880.jpg
     ├── avatar_832500321955962880.jpg
     └── downloaded_images.txt
 ```
 
-## 数据获取
+## Getting data with gallery-dl (optional but recommended)
 
-### 使用 gallery-dl 获取 Twitter 数据
-
-在开始处理数据之前，您需要先使用 gallery-dl 工具从 Twitter 获取数据。gallery-dl 是一个强大的媒体下载工具，支持从多个平台下载内容。
-
-#### 1. 安装 gallery-dl
+- Install:
 
 ```bash
-# 使用 pip 安装
 pip install gallery-dl
-
-# 或者使用系统包管理器
-# Ubuntu/Debian
-sudo apt install gallery-dl
-
-# Arch Linux
-sudo pacman -S gallery-dl
+# or via your distro package manager
 ```
 
-#### 2. 创建配置文件
-
-在您的主目录下创建 gallery-dl 配置文件：
-
-```bash
-mkdir -p ~/.config/gallery-dl
-```
-
-创建配置文件 `~/.config/gallery-dl/config.json`：
+- Create `~/.config/gallery-dl/config.json`:
 
 ```json
 {
@@ -108,329 +91,145 @@ mkdir -p ~/.config/gallery-dl
 }
 ```
 
-#### 3. 配置说明
-
-- **extractor.twitter**: Twitter 提取器配置
-
-  - `text-tweets`: 下载文本推文
-  - `include`: 包含时间线推文
-  - `videos`: 下载视频文件
-  - `retweets`: 包含转发
-  - `quoted`: 包含引用推文
-
-- **downloader.http**: 下载器配置
-
-  - `rate`: 限制下载速度为 1MB/s，避免被限制
-
-- **postprocessors**: 后处理器配置
-  - 将推文元数据保存为 JSON 文件到 `twitter-meta` 文件夹
-  - 文件名格式为 `{tweet_id}.json`
-
-#### 4. 下载数据
+- Download examples:
 
 ```bash
-# 下载指定用户的时间线
+# User timeline
 gallery-dl "https://twitter.com/username"
 
-# 下载指定推文
+# A specific tweet
 gallery-dl "https://twitter.com/username/status/1234567890"
 
-# 下载搜索结果
+# Search results
 gallery-dl "https://twitter.com/search?q=keyword"
 
-# 下载列表
+# Lists
 gallery-dl "https://twitter.com/username/lists/listname"
 ```
 
-#### 5. 输出结构
-
-下载完成后，您将得到以下文件夹结构：
-
-```
-your_download_folder/
-├── twitter-meta/          # JSON 元数据文件
-│   ├── 1448196924784328704.json
-│   ├── 1448196924784328705.json
-│   └── ...
-└── img/                   # 媒体文件（图片/视频）
-    ├── 1448196924784328704_1.jpg
-    ├── 1448196924784328704_2.jpg
-    ├── 1448196924784328704_1.mp4
-    └── ...
-```
-
-### 注意事项
-
-1. **速率限制**: 建议设置合理的下载速率，避免被 Twitter 限制
-2. **认证**: 某些内容可能需要登录才能访问，请参考 gallery-dl 的认证文档
-3. **法律合规**: 请确保您的数据获取行为符合相关法律法规和 Twitter 的服务条款
-4. **存储空间**: 确保有足够的磁盘空间存储下载的数据
-
-## 安装依赖
-
-### 项目依赖
+## Installation
 
 ```bash
 pip install -r requirements.txt
 ```
 
-## 使用方法
+## Usage
 
-### 数据处理
-
-#### 基本用法
+- Data processing
 
 ```bash
-python twitter_data_processor.py /path/to/your/data/folder
+# Build or update the SQLite database in your data folder
+python twitter_data_processor.py /path/to/your_data_folder
+
+# Show quick DB statistics
+python twitter_data_processor.py /path/to/your_data_folder --stats
 ```
 
-#### 查看统计信息
+- Start the web viewer
 
 ```bash
-python twitter_data_processor.py /path/to/your/data/folder --stats
+# Basic
+python twitter_viewer.py /path/to/your_data_folder/twitter_data.db
+
+# With host/port/debug options
+python twitter_viewer.py /path/to/your_data_folder/twitter_data.db --host 0.0.0.0 --port 8080 --debug
 ```
 
-### Web 界面展示
+Then open `http://localhost:5000`.
 
-项目还提供了一个功能完整的 Web 界面来展示和浏览 Twitter 数据。
+## Web UI highlights
 
-#### 启动 Web 服务器
+- Responsive, modern layout with dark/light theme
+- Infinite-like paging with smart navigation
+- Tweet cards show content, user info, media, and type badges
+- User profile page with avatar, banner, and counters
+- Tweet detail with related conversation
+- Search by content/year/month with pagination
+- Built-in translation panel per tweet
 
-```bash
-# 基本启动
-python twitter_viewer.py /path/to/your/data/folder/twitter_data.db
+## Translation
 
-# 指定主机和端口
-python twitter_viewer.py /path/to/your/data/folder/twitter_data.db --host 0.0.0.0 --port 8080
+- Providers: `openai`, `google`, `baidu`, `youdao`, `deepl`
+- How it works:
 
-# 调试模式
-python twitter_viewer.py /path/to/your/data/folder/twitter_data.db --debug
-```
+  - In the web UI, open the settings panel and choose provider
+  - Fill required fields:
+    - `translation_service`: one of the providers above
+    - `api_key`: required for all providers
+    - `api_secret`: required by some providers (e.g., Baidu/Youdao)
+    - `api_url`: optional override for custom endpoints
+    - `openai_model`: default `gpt-3.5-turbo`; choose preset or `custom`
+  - The UI calls backend endpoints:
+    - POST `/api/translate` with `{ content, target_lang, translation_service, api_key, api_secret, api_url, openai_model }`
+    - POST `/api/detect-language`
+    - GET `/api/supported-languages`
+  - Note: API keys are sent from browser to server for each translation request; handle them prudently if exposing the app publicly.
 
-#### Web 界面功能
+- Supported language codes:
+  - `zh`, `en`, `ja`, `ko`, `es`, `fr`, `de`, `ru`, `ar`, `hi`, `pt`, `it`
 
-启动后，您可以通过浏览器访问 `http://localhost:5000` 来使用以下功能：
+## Database schema
 
-1. **首页时间线**
+- Table `tweets` (created by `twitter_data_processor.py`)
 
-   - 按时间顺序显示所有推文
-   - 支持分页浏览（每页 20 条）
-   - 显示推文内容、用户信息、媒体文件
-   - 支持转发、回复、引用推文的展示
-   - 智能分页导航
+  - `tweet_id` INTEGER PRIMARY KEY
+  - `retweet_id`, `quote_id`, `reply_id` INTEGER
+  - `conversation_id`, `source_id` INTEGER
+  - `date` TEXT
+  - `lang`, `source` TEXT
+  - `sensitive` BOOLEAN
+  - `sensitive_flags` TEXT (JSON)
+  - `favorite_count`, `quote_count`, `reply_count`, `retweet_count`, `bookmark_count`, `view_count` INTEGER
+  - `content` TEXT
+  - `quote_by` TEXT
+  - `count` INTEGER
+  - `category`, `subcategory` TEXT
+  - `media_files` TEXT (JSON array of associated filenames)
+  - `author_id` INTEGER (FK to `users.user_id`)
+  - `user_id` INTEGER (FK to `users.user_id`)
+  - `hashtags` TEXT (JSON)
+  - `created_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 
-2. **用户资料页面**
+- Table `users`
 
-   - 查看用户详细信息
-   - 显示用户头像和横幅图片
-   - 查看用户的推文列表（分页）
-   - 显示用户统计信息
+  - `user_id` INTEGER PRIMARY KEY
+  - `name`, `nick`, `location` TEXT
+  - `date` TEXT
+  - `verified`, `protected` BOOLEAN
+  - `profile_banner`, `profile_image` TEXT
+  - `favourites_count`, `followers_count`, `friends_count`, `listed_count`, `media_count`, `statuses_count` INTEGER
+  - `description`, `url` TEXT
+  - `created_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 
-3. **推文详情页面**
+- Table `media_files`
 
-   - 查看单条推文的详细信息
-   - 显示完整的推文内容
-   - 查看关联的媒体文件
-   - 显示推文的互动数据（点赞、转发、回复数）
-   - 显示相关推文（回复、引用等）
+  - `id` INTEGER PRIMARY KEY AUTOINCREMENT
+  - `tweet_id` INTEGER (FK to `tweets.tweet_id`)
+  - `file_name`, `file_type`, `file_path` TEXT
+  - `created_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 
-4. **搜索功能**
+- Insert behavior uses `INSERT OR REPLACE` to avoid duplicates.
 
-   - 搜索推文内容
-   - 按年份筛选
-   - 按月份筛选
-   - 支持组合搜索
-   - 搜索结果分页
+## Notes
 
-5. **统计页面**
+- Rate limiting: when using gallery-dl, consider setting reasonable rates to avoid throttling.
+- Storage: ensure sufficient disk space for media files.
+- Legal: make sure your data collection complies with local laws and platform ToS.
+- Missing files: the web UI gracefully handles missing media/avatars.
 
-   - 显示总体统计信息
-   - 最活跃用户排行（前 10 名）
-   - 最受欢迎推文排行（按点赞数，前 10 名）
-   - 数据概览（推文数、用户数、媒体文件数等）
+## Logging
 
-6. **媒体文件支持**
-   - 自动显示图片和视频
-   - 支持头像和横幅图片
-   - 本地文件路径映射
-   - 自动处理媒体文件路径
+- Both processor and viewer emit informative logs. Adjust `logging.basicConfig` in code if needed.
 
-#### 界面特性
-
-- **响应式设计**: 支持桌面和移动设备
-- **深色/浅色主题**: 可切换的界面主题
-- **现代化 UI**: 类似 Twitter 的界面设计
-- **快速加载**: 优化的数据库查询和页面渲染
-- **智能分页**: 自动计算分页信息，支持大量数据
-
-## 数据库结构
-
-脚本会创建以下三个表：
-
-### tweets 表
-
-存储推文的基本信息，包括：
-
-- `tweet_id`: 推文 ID（主键）
-- `retweet_id`, `quote_id`, `reply_id`: 关联推文 ID
-- `conversation_id`, `source_id`: 对话和来源 ID
-- `date`: 发布时间
-- `lang`, `source`: 语言和来源
-- `sensitive`, `sensitive_flags`: 敏感内容标记
-- `favorite_count`, `retweet_count`, `reply_count`, `quote_count`, `bookmark_count`, `view_count`: 互动统计
-- `content`: 推文内容
-- `quote_by`: 引用来源
-- `category`, `subcategory`: 分类信息
-- `media_files`: 关联的媒体文件列表（JSON 格式）
-- `author_id`, `user_id`: 作者和用户 ID
-- `hashtags`: 话题标签（JSON 格式）
-- `created_at`: 记录创建时间
-
-### users 表
-
-存储用户信息，包括：
-
-- `user_id`: 用户 ID（主键）
-- `name`, `nick`: 用户名和昵称
-- `location`: 位置信息
-- `date`: 注册日期
-- `verified`, `protected`: 认证和保护状态
-- `profile_banner`, `profile_image`: 头像和横幅图片 URL
-- `favourites_count`, `followers_count`, `friends_count`, `listed_count`, `media_count`, `statuses_count`: 用户统计
-- `description`: 用户描述
-- `url`: 用户网站
-- `created_at`: 记录创建时间
-
-### media_files 表
-
-存储媒体文件信息，包括：
-
-- `id`: 自增主键
-- `tweet_id`: 关联的推文 ID
-- `file_name`: 文件名
-- `file_type`: 文件类型
-- `file_path`: 文件路径
-- `created_at`: 记录创建时间
-
-## 示例
-
-假设你有一个包含 Twitter 备份数据的文件夹：
+## Examples
 
 ```bash
-# 处理数据
+# Process data
 python twitter_data_processor.py /home/user/twitter_backup
 
-# 查看处理结果统计
+# Show stats
 python twitter_data_processor.py /home/user/twitter_backup --stats
 
-# 启动Web界面
+# Start web UI
 python twitter_viewer.py /home/user/twitter_backup/twitter_data.db
 ```
-
-## 注意事项
-
-1. 脚本会自动创建`avatar`文件夹和`downloaded_images.txt`文件来跟踪已下载的图片
-2. 为了避免重复下载，脚本使用 URL 的 MD5 哈希值来判断图片是否已下载
-3. 下载图片时会添加适当的请求头，模拟浏览器行为
-4. 处理大量文件时，脚本会在每个文件处理后添加小延迟，避免请求过于频繁
-5. 所有操作都有详细的日志记录，方便调试和监控
-6. 数据库使用`INSERT OR REPLACE`，确保数据不会重复
-7. 支持数据库结构自动升级，添加新字段
-
-## 错误处理
-
-- 如果 JSON 文件格式不正确，脚本会记录错误并继续处理其他文件
-- 如果图片下载失败，脚本会记录错误但不会中断整个处理过程
-- 数据库操作使用`INSERT OR REPLACE`，确保数据不会重复
-- Web 界面会自动处理文件不存在的情况，显示默认头像
-
-## 日志
-
-脚本会输出详细的日志信息，包括：
-
-- 处理进度
-- 成功/失败的文件数量
-- 下载的图片信息
-- 错误详情
-- 数据库升级信息
-
-日志级别可以通过修改代码中的`logging.basicConfig`来调整。
-
-## 性能优化
-
-1. **批量处理**: 使用事务批量提交数据库操作
-2. **索引优化**: 数据库表已针对查询进行了优化
-3. **分页加载**: Web 界面使用分页减少内存占用
-4. **缓存机制**: 避免重复下载相同的图片
-5. **延迟控制**: 添加适当延迟避免请求过于频繁
-6. **翻译缓存**: 客户端缓存翻译结果，避免重复请求
-
-## 翻译功能
-
-### 功能概述
-
-Twitter 备份查看器现已集成 OpenAI API 翻译功能，支持将推文内容翻译成多种语言。
-
-### 支持的语言
-
-- 中文 (zh)
-- 英语 (en)
-- 日语 (ja)
-- 韩语 (ko)
-- 西班牙语 (es)
-- 法语 (fr)
-- 德语 (de)
-- 俄语 (ru)
-- 阿拉伯语 (ar)
-- 印地语 (hi)
-- 葡萄牙语 (pt)
-- 意大利语 (it)
-
-### 配置要求
-
-#### 1. 安装依赖
-
-```bash
-pip install openai>=1.0.0
-```
-
-#### 2. 设置 OpenAI API 密钥
-
-在运行应用前设置环境变量：
-
-```bash
-export OPENAI_API_KEY="your-openai-api-key-here"
-```
-
-### 使用方法
-
-1. 在推文列表中，每条推文下方都会显示"翻译"按钮和语言选择下拉框
-2. 选择目标语言（默认为中文）
-3. 点击"翻译"按钮
-4. 等待翻译完成，翻译结果会显示在推文下方
-5. 可以点击"×"按钮隐藏翻译结果
-
-### 功能特性
-
-- **智能缓存**：相同内容的翻译会被缓存，避免重复请求
-- **错误处理**：网络错误或 API 错误时会显示友好的错误信息
-- **多语言支持**：支持 12 种常用语言
-- **响应式设计**：适配桌面和移动设备
-- **暗色模式支持**：翻译界面支持明暗主题切换
-
-### 测试翻译功能
-
-运行测试脚本验证翻译功能：
-
-```bash
-python3 test_translation.py
-```
-
-### 注意事项
-
-1. **API 费用**：使用 OpenAI API 会产生费用，请合理使用
-2. **网络要求**：需要稳定的网络连接访问 OpenAI API
-3. **内容限制**：某些特殊内容可能无法准确翻译
-4. **隐私保护**：推文内容会发送到 OpenAI 进行处理
-
-详细的使用说明请参考 [TRANSLATION_README.md](TRANSLATION_README.md)。
