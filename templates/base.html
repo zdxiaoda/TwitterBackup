@@ -238,8 +238,9 @@
 
       .tweet-header {
         display: flex;
-        align-items: center;
-        margin-bottom: 8px;
+        align-items: flex-start;
+        margin-bottom: 2px;
+        min-height: 48px;
       }
 
       .avatar {
@@ -247,11 +248,14 @@
         height: 48px;
         border-radius: 50%;
         margin-right: 12px;
+        margin-top: 0;
         object-fit: cover;
+        flex-shrink: 0;
       }
 
       .tweet-info {
         flex: 1;
+        padding-top: 2px;
       }
 
       .tweet-author {
@@ -328,7 +332,7 @@
 
       .tweet-content {
         margin-left: 60px;
-        margin-top: 4px;
+        margin-top: -30px;
         white-space: pre-line;
         overflow-wrap: break-word;
         font-size: 15px;
@@ -868,6 +872,7 @@
 
       /* Space链接样式 */
       .space-link {
+        margin-top: 10px;
         color: var(--space-link-color);
         font-weight: 600;
         text-decoration: none;

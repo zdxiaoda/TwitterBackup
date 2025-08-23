@@ -171,8 +171,9 @@ def process_tweet_data(tweet_dict):
         tweet_dict["media_files"] = processed_media_files
 
     # 处理推文内容中的Space链接
-    if tweet_dict.get("content"):
-        content = tweet_dict["content"]
+    def process_space_links(content):
+        if not content:
+            return content
         # 查找Space链接
         space_link_pattern = r"(https?://(?:x|twitter)\.com/i/spaces/[a-zA-Z0-9_-]+)"
 
@@ -180,8 +181,23 @@ def process_tweet_data(tweet_dict):
             url = match.group(0)
             return f'<a href="{url}" target="_blank" class="space-link"><i class="fas fa-microphone-alt"></i> Space</a>'
 
-        content = re.sub(space_link_pattern, replace_space_link, content)
-        tweet_dict["content"] = content
+        return re.sub(space_link_pattern, replace_space_link, content)
+
+    # 处理主推文内容
+    if tweet_dict.get("content"):
+        tweet_dict["content"] = process_space_links(tweet_dict["content"])
+
+    # 处理回复推文内容
+    if tweet_dict.get("reply_info") and tweet_dict["reply_info"].get("content"):
+        tweet_dict["reply_info"]["content"] = process_space_links(
+            tweet_dict["reply_info"]["content"]
+        )
+
+    # 处理引用推文内容
+    if tweet_dict.get("quote_info") and tweet_dict["quote_info"].get("content"):
+        tweet_dict["quote_info"]["content"] = process_space_links(
+            tweet_dict["quote_info"]["content"]
+        )
 
     # 处理相关推文的头像URL
     if tweet_dict.get("retweet_info") and tweet_dict["retweet_info"].get(
