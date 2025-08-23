@@ -14,6 +14,11 @@ from datetime import datetime, timedelta
 import os
 import re
 from urllib.parse import urlparse
+from translation_service import (
+    get_translation_service,
+    translate_tweet_content,
+    detect_tweet_language,
+)
 
 app = Flask(__name__)
 app.config["SECRET_KEY"] = "your-secret-key-here"
@@ -1146,6 +1151,63 @@ def stats():
     conn.close()
 
     return render_template("stats.html", stats=stats)
+
+
+@app.route("/api/translate", methods=["POST"])
+def api_translate():
+    """翻译API接口"""
+    try:
+        data = request.get_json()
+        if not data:
+            return jsonify({"success": False, "error": "请求数据为空"}), 400
+
+        content = data.get("content", "")
+        target_lang = data.get("target_lang", "zh")
+
+        if not content:
+            return jsonify({"success": False, "error": "翻译内容为空"}), 400
+
+        # 执行翻译
+        result = translate_tweet_content(content, target_lang)
+
+        return jsonify(result)
+
+    except Exception as e:
+        return jsonify({"success": False, "error": f"翻译失败: {str(e)}"}), 500
+
+
+@app.route("/api/detect-language", methods=["POST"])
+def api_detect_language():
+    """语言检测API接口"""
+    try:
+        data = request.get_json()
+        if not data:
+            return jsonify({"success": False, "error": "请求数据为空"}), 400
+
+        content = data.get("content", "")
+
+        if not content:
+            return jsonify({"success": False, "error": "检测内容为空"}), 400
+
+        # 执行语言检测
+        result = detect_tweet_language(content)
+
+        return jsonify(result)
+
+    except Exception as e:
+        return jsonify({"success": False, "error": f"语言检测失败: {str(e)}"}), 500
+
+
+@app.route("/api/supported-languages")
+def api_supported_languages():
+    """获取支持的语言列表"""
+    try:
+        service = get_translation_service()
+        languages = service.get_supported_languages()
+        return jsonify({"success": True, "languages": languages})
+
+    except Exception as e:
+        return jsonify({"success": False, "error": f"获取语言列表失败: {str(e)}"}), 500
 
 
 def main():

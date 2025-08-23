@@ -1169,6 +1169,132 @@
       .r-12vffkv {
         pointer-events: none !important;
       }
+
+      /* 翻译功能样式 */
+      .translation-controls {
+        margin-top: 8px;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        flex-wrap: wrap;
+      }
+
+      .translate-btn {
+        background: var(--link-color);
+        color: white;
+        border: none;
+        padding: 4px 12px;
+        border-radius: 16px;
+        font-size: 12px;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        gap: 4px;
+        transition: background-color 0.2s;
+      }
+
+      .translate-btn:hover {
+        background: #1a8cd8;
+      }
+
+      .translate-btn:disabled {
+        background: var(--secondary-text-color);
+        cursor: not-allowed;
+      }
+
+      .target-language {
+        background: var(--card-bg-color);
+        border: 1px solid var(--border-color);
+        color: var(--text-color);
+        padding: 4px 8px;
+        border-radius: 12px;
+        font-size: 12px;
+        cursor: pointer;
+      }
+
+      .target-language:focus {
+        outline: none;
+        border-color: var(--link-color);
+      }
+
+      .translated-content {
+        margin-top: 12px;
+        padding: 12px;
+        background: var(--hover-bg-color);
+        border-radius: 8px;
+        border-left: 3px solid var(--link-color);
+      }
+
+      .translation-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 8px;
+        font-size: 12px;
+        color: var(--secondary-text-color);
+      }
+
+      .translation-label {
+        font-weight: 500;
+      }
+
+      .close-translation {
+        background: none;
+        border: none;
+        color: var(--secondary-text-color);
+        cursor: pointer;
+        padding: 2px;
+        border-radius: 4px;
+        transition: background-color 0.2s;
+      }
+
+      .close-translation:hover {
+        background: var(--border-color);
+      }
+
+      .translation-text {
+        color: var(--text-color);
+        line-height: 1.5;
+        font-size: 14px;
+      }
+
+      .translation-loading {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        color: var(--secondary-text-color);
+        font-size: 14px;
+      }
+
+      .translation-error {
+        color: var(--error-color);
+        font-size: 14px;
+      }
+
+      .translation-error-content {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+      }
+
+      .translation-error-content i {
+        font-size: 16px;
+      }
+
+      /* 暗色模式下的翻译样式调整 */
+      body.dark-mode .target-language {
+        background: var(--card-bg-color);
+        border-color: var(--border-color);
+        color: var(--text-color);
+      }
+
+      body.dark-mode .translated-content {
+        background: rgba(255, 255, 255, 0.05);
+      }
+
+      body.dark-mode .close-translation:hover {
+        background: rgba(255, 255, 255, 0.1);
+      }
     </style>
   </head>
   <body>
@@ -1232,6 +1358,223 @@
             body.classList.add("dark-mode");
             localStorage.setItem("theme", "dark-mode");
             themeToggle.innerHTML = '<i class="fas fa-moon"></i>';
+          }
+        });
+      });
+
+      // 翻译功能JavaScript代码
+      let translationCache = {};
+
+      // 翻译推文
+      async function translateTweet(button, tweetId) {
+        const tweetElement = document.querySelector(
+          `[data-tweet-id="${tweetId}"]`
+        );
+        if (!tweetElement) return;
+
+        const contentElement = tweetElement.querySelector(".tweet-content");
+        const originalContent =
+          contentElement.querySelector(".original-content");
+        const translatedContent = contentElement.querySelector(
+          ".translated-content"
+        );
+        const loadingElement = translatedContent.querySelector(
+          ".translation-loading"
+        );
+        const resultElement = translatedContent.querySelector(
+          ".translation-result"
+        );
+        const errorElement =
+          translatedContent.querySelector(".translation-error");
+        const targetLanguageSelect =
+          contentElement.querySelector(".target-language");
+
+        const targetLang = targetLanguageSelect.value;
+        const originalText = originalContent.textContent.trim();
+
+        // 检查缓存
+        const cacheKey = `${originalText}_${targetLang}`;
+        if (translationCache[cacheKey]) {
+          showTranslation(tweetId, translationCache[cacheKey]);
+          return;
+        }
+
+        // 显示加载状态
+        button.disabled = true;
+        button.innerHTML = '<i class="fas fa-spinner fa-spin"></i> 翻译中...';
+        translatedContent.style.display = "block";
+        loadingElement.style.display = "block";
+        resultElement.style.display = "none";
+        errorElement.style.display = "none";
+
+        try {
+          const response = await fetch("/api/translate", {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify({
+              content: originalText,
+              target_lang: targetLang,
+            }),
+          });
+
+          const result = await response.json();
+
+          if (result.success) {
+            // 缓存结果
+            translationCache[cacheKey] = result;
+            showTranslation(tweetId, result);
+          } else {
+            showTranslationError(tweetId, result.error);
+          }
+        } catch (error) {
+          showTranslationError(tweetId, "网络错误，请稍后重试");
+        } finally {
+          // 恢复按钮状态
+          button.disabled = false;
+          button.innerHTML = '<i class="fas fa-language"></i> 翻译';
+          loadingElement.style.display = "none";
+        }
+      }
+
+      // 显示翻译结果
+      function showTranslation(tweetId, result) {
+        const tweetElement = document.querySelector(
+          `[data-tweet-id="${tweetId}"]`
+        );
+        if (!tweetElement) return;
+
+        const contentElement = tweetElement.querySelector(".tweet-content");
+        const translatedContent = contentElement.querySelector(
+          ".translated-content"
+        );
+        const resultElement = translatedContent.querySelector(
+          ".translation-result"
+        );
+        const errorElement =
+          translatedContent.querySelector(".translation-error");
+
+        translatedContent.style.display = "block";
+        resultElement.style.display = "block";
+        errorElement.style.display = "none";
+
+        resultElement.innerHTML = `
+              <div class="translation-header">
+                  <span class="translation-label">翻译 (${
+                    result.target_lang_name || "中文"
+                  })</span>
+                  <button class="close-translation" onclick="hideTranslation('${tweetId}')">
+                      <i class="fas fa-times"></i>
+                  </button>
+              </div>
+              <div class="translation-text">${result.translated}</div>
+          `;
+      }
+
+      // 显示翻译错误
+      function showTranslationError(tweetId, error) {
+        const tweetElement = document.querySelector(
+          `[data-tweet-id="${tweetId}"]`
+        );
+        if (!tweetElement) return;
+
+        const contentElement = tweetElement.querySelector(".tweet-content");
+        const translatedContent = contentElement.querySelector(
+          ".translated-content"
+        );
+        const resultElement = translatedContent.querySelector(
+          ".translation-result"
+        );
+        const errorElement =
+          translatedContent.querySelector(".translation-error");
+
+        translatedContent.style.display = "block";
+        resultElement.style.display = "none";
+        errorElement.style.display = "block";
+
+        errorElement.innerHTML = `
+              <div class="translation-error-content">
+                  <i class="fas fa-exclamation-triangle"></i>
+                  <span>${error}</span>
+              </div>
+          `;
+      }
+
+      // 隐藏翻译
+      function hideTranslation(tweetId) {
+        const tweetElement = document.querySelector(
+          `[data-tweet-id="${tweetId}"]`
+        );
+        if (!tweetElement) return;
+
+        const contentElement = tweetElement.querySelector(".tweet-content");
+        const translatedContent = contentElement.querySelector(
+          ".translated-content"
+        );
+
+        translatedContent.style.display = "none";
+      }
+
+      // 改变目标语言
+      function changeTargetLanguage(select, tweetId) {
+        const tweetElement = document.querySelector(
+          `[data-tweet-id="${tweetId}"]`
+        );
+        if (!tweetElement) return;
+
+        const translatedContent = tweetElement.querySelector(
+          ".translated-content"
+        );
+        if (translatedContent.style.display === "block") {
+          // 如果翻译已显示，重新翻译
+          const button = tweetElement.querySelector(".translate-btn");
+          translateTweet(button, tweetId);
+        }
+      }
+
+      // 页面加载完成后初始化翻译功能
+      document.addEventListener("DOMContentLoaded", function () {
+        // 为所有推文添加翻译控件
+        const tweets = document.querySelectorAll(".tweet");
+        tweets.forEach((tweet) => {
+          const tweetId = tweet.getAttribute("data-tweet-id");
+          if (tweetId) {
+            const contentElement = tweet.querySelector(".tweet-content");
+            if (
+              contentElement &&
+              !contentElement.querySelector(".translation-controls")
+            ) {
+              // 添加翻译控件
+              const originalContent = contentElement.innerHTML;
+              contentElement.innerHTML = `
+                          <div class="original-content">
+                              ${originalContent}
+                          </div>
+                          <div class="translation-controls">
+                              <button class="translate-btn" onclick="translateTweet(this, '${tweetId}')" data-tweet-id="${tweetId}">
+                                  <i class="fas fa-language"></i> 翻译
+                              </button>
+                              <select class="target-language" onchange="changeTargetLanguage(this, '${tweetId}')" data-tweet-id="${tweetId}">
+                                  <option value="zh">中文</option>
+                                  <option value="en">English</option>
+                                  <option value="ja">日本語</option>
+                                  <option value="ko">한국어</option>
+                                  <option value="es">Español</option>
+                                  <option value="fr">Français</option>
+                                  <option value="de">Deutsch</option>
+                                  <option value="ru">Русский</option>
+                              </select>
+                          </div>
+                          <div class="translated-content" id="translated-${tweetId}" style="display: none;">
+                              <div class="translation-loading" style="display: none;">
+                                  <i class="fas fa-spinner fa-spin"></i> 翻译中...
+                              </div>
+                              <div class="translation-result"></div>
+                              <div class="translation-error" style="display: none;"></div>
+                          </div>
+                      `;
+            }
           }
         });
       });
