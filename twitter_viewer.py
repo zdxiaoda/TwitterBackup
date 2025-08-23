@@ -163,6 +163,45 @@ def process_tweet_data(tweet_dict):
             tweet_dict.get("user_id"), tweet_dict["user_banner"]
         )
 
+    # 处理引用推文信息
+    if tweet_dict.get("quote_info"):
+        if tweet_dict["quote_info"].get("author_avatar"):
+            tweet_dict["quote_info"]["author_avatar"] = convert_avatar_url_to_local(
+                tweet_dict["quote_info"].get("author_id"),
+                tweet_dict["quote_info"]["author_avatar"],
+            )
+    # 处理被引用原推文信息（反向）
+    if tweet_dict.get("quoted_info"):
+        if tweet_dict["quoted_info"].get("author_avatar"):
+            tweet_dict["quoted_info"]["author_avatar"] = convert_avatar_url_to_local(
+                tweet_dict["quoted_info"].get("author_id"),
+                tweet_dict["quoted_info"]["author_avatar"],
+            )
+
+    # 处理转发推文信息
+    if tweet_dict.get("retweet_info"):
+        if tweet_dict["retweet_info"].get("author_avatar"):
+            tweet_dict["retweet_info"]["author_avatar"] = convert_avatar_url_to_local(
+                tweet_dict["retweet_info"].get("author_id"),
+                tweet_dict["retweet_info"]["author_avatar"],
+            )
+
+    # 处理回复推文信息
+    if tweet_dict.get("reply_info"):
+        if tweet_dict["reply_info"].get("author_avatar"):
+            tweet_dict["reply_info"]["author_avatar"] = convert_avatar_url_to_local(
+                tweet_dict["reply_info"].get("author_id"),
+                tweet_dict["reply_info"]["author_avatar"],
+            )
+
+    # 处理被引用推文信息
+    if tweet_dict.get("quoted_info"):
+        if tweet_dict["quoted_info"].get("author_avatar"):
+            tweet_dict["quoted_info"]["author_avatar"] = convert_avatar_url_to_local(
+                tweet_dict["quoted_info"].get("author_id"),
+                tweet_dict["quoted_info"]["author_avatar"],
+            )
+
     # 处理媒体文件路径
     if tweet_dict.get("media_files"):
         processed_media_files = []
@@ -276,6 +315,39 @@ def process_tweet_data(tweet_dict):
         )
         tweet_dict["quote_info"]["content"] = process_links(
             tweet_dict["quote_info"]["content"]
+        )
+
+    # 处理被引用原推文内容（quoted_info）
+    if tweet_dict.get("quoted_info") and tweet_dict["quoted_info"].get("content"):
+        tweet_dict["quoted_info"]["content"] = clean_tweet_content(
+            tweet_dict["quoted_info"]["content"]
+        )
+        tweet_dict["quoted_info"]["content"] = process_space_links(
+            tweet_dict["quoted_info"]["content"]
+        )
+        tweet_dict["quoted_info"]["content"] = process_links(
+            tweet_dict["quoted_info"]["content"]
+        )
+
+    # 处理被回复原推文内容（replied_info）
+    if tweet_dict.get("replied_info") and tweet_dict["replied_info"].get("content"):
+        tweet_dict["replied_info"]["content"] = clean_tweet_content(
+            tweet_dict["replied_info"]["content"]
+        )
+        tweet_dict["replied_info"]["content"] = process_space_links(
+            tweet_dict["replied_info"]["content"]
+        )
+        tweet_dict["replied_info"]["content"] = process_links(
+            tweet_dict["replied_info"]["content"]
+        )
+
+    # 转换被回复原推文头像
+    if tweet_dict.get("replied_info") and tweet_dict["replied_info"].get(
+        "author_avatar"
+    ):
+        tweet_dict["replied_info"]["author_avatar"] = convert_avatar_url_to_local(
+            tweet_dict["replied_info"].get("author_id"),
+            tweet_dict["replied_info"].get("author_avatar"),
         )
 
     # 处理转发推文内容
@@ -750,7 +822,7 @@ def tweet_detail(tweet_id):
     conn = get_db_connection()
     cursor = conn.cursor()
 
-    # 获取推文详情
+    # 获取推文详情（仅基础信息与转发信息，去掉正向引用/回复关联）
     cursor.execute(
         """
         SELECT 
@@ -763,40 +835,19 @@ def tweet_detail(tweet_id):
             u.nick as user_nick,
             u.profile_image as user_avatar,
             u.profile_banner as user_banner,
-            -- 相关推文信息
+            -- 转发推文信息
             rt.content as retweet_content,
             rt.author_id as retweet_author_id,
             rt.user_id as retweet_user_id,
             rt.media_files as retweet_media_files,
             rta.name as retweet_author_name,
             rta.nick as retweet_author_nick,
-            rta.profile_image as retweet_author_avatar,
-            qt.content as quote_content,
-            qt.author_id as quote_author_id,
-            qt.user_id as quote_user_id,
-            qt.media_files as quote_media_files,
-            qta.name as quote_author_name,
-            qta.nick as quote_author_nick,
-            qta.profile_image as quote_author_avatar,
-            rp.content as reply_content,
-            rp.author_id as reply_author_id,
-            rp.user_id as reply_user_id,
-            rp.media_files as reply_media_files,
-            rpa.name as reply_author_name,
-            rpa.nick as reply_author_nick,
-            rpa.profile_image as reply_author_avatar
+            rta.profile_image as retweet_author_avatar
         FROM tweets t
         LEFT JOIN users a ON t.author_id = a.user_id
         LEFT JOIN users u ON t.user_id = u.user_id
-        -- 关联转发推文
         LEFT JOIN tweets rt ON t.retweet_id = rt.tweet_id
         LEFT JOIN users rta ON rt.author_id = rta.user_id
-        -- 关联引用推文
-        LEFT JOIN tweets qt ON t.quote_id = qt.tweet_id
-        LEFT JOIN users qta ON qt.author_id = qta.user_id
-        -- 关联回复推文
-        LEFT JOIN tweets rp ON t.reply_id = rp.tweet_id
-        LEFT JOIN users rpa ON rp.author_id = rpa.user_id
         WHERE t.tweet_id = ?
     """,
         (tweet_id,),
@@ -821,10 +872,8 @@ def tweet_detail(tweet_id):
     else:
         tweet["hashtags"] = []
 
-    # 判断推文类型
+    # 判断推文类型（仅保留转发标识；引用/回复改为反向查找）
     tweet["is_retweet"] = tweet["retweet_id"] > 0
-    tweet["is_quote"] = tweet["quote_id"] > 0
-    tweet["is_reply"] = tweet["reply_id"] > 0
 
     # 处理相关推文信息
     if tweet["is_retweet"] and tweet.get("retweet_content"):
@@ -843,42 +892,8 @@ def tweet_detail(tweet_id):
             "media_files": retweet_media_files,
         }
 
-    if tweet["is_quote"] and tweet.get("quote_content"):
-        # 解析引用推文的媒体文件
-        quote_media_files = []
-        if tweet.get("quote_media_files"):
-            quote_media_files = json.loads(tweet["quote_media_files"])
-
-        tweet["quote_info"] = {
-            "content": tweet["quote_content"],
-            "author_id": tweet["quote_author_id"],
-            "user_id": tweet["quote_user_id"],
-            "author_name": tweet.get("quote_author_name"),
-            "author_nick": tweet.get("quote_author_nick"),
-            "author_avatar": tweet.get("quote_author_avatar"),
-            "media_files": quote_media_files,
-        }
-
-    if tweet["is_reply"] and tweet.get("reply_content"):
-        # 解析回复推文的媒体文件
-        reply_media_files = []
-        if tweet.get("reply_media_files"):
-            reply_media_files = json.loads(tweet["reply_media_files"])
-
-        tweet["reply_info"] = {
-            "content": tweet["reply_content"],
-            "author_id": tweet["reply_author_id"],
-            "user_id": tweet["reply_user_id"],
-            "author_name": tweet.get("reply_author_name"),
-            "author_nick": tweet.get("reply_author_nick"),
-            "author_avatar": tweet.get("reply_author_avatar"),
-            "media_files": reply_media_files,
-        }
-
-    # 转换头像URL为本地路径
-    tweet = process_tweet_data(tweet)
-
-    # 获取相关推文（回复、引用等）
+    # 反向查找原始推文：如果当前推文是“引用者/回复者”，原始推文会在其他记录中以当前ID作为quote_id/reply_id
+    # 原始的被引用推文（quoted original）
     cursor.execute(
         """
         SELECT 
@@ -892,31 +907,76 @@ def tweet_detail(tweet_id):
         FROM tweets t
         LEFT JOIN users a ON t.author_id = a.user_id
         LEFT JOIN users u ON t.user_id = u.user_id
-        WHERE t.reply_id = ? OR t.quote_id = ?
-        ORDER BY t.date DESC
-        LIMIT 20
-    """,
-        (tweet_id, tweet_id),
+        WHERE t.quote_id = ?
+        LIMIT 1
+        """,
+        (tweet_id,),
     )
+    quoted_orig = cursor.fetchone()
+    if quoted_orig:
+        qo = dict(quoted_orig)
+        qo_media = []
+        if qo.get("media_files"):
+            try:
+                qo_media = json.loads(qo["media_files"])
+            except Exception:
+                qo_media = []
+        tweet["quoted_info"] = {
+            "tweet_id": qo.get("tweet_id"),
+            "content": qo.get("content"),
+            "author_id": qo.get("author_id"),
+            "user_id": qo.get("user_id"),
+            "author_name": qo.get("author_name"),
+            "author_nick": qo.get("author_nick"),
+            "author_avatar": qo.get("author_avatar"),
+            "media_files": qo_media,
+        }
 
-    related_tweets = []
-    for row in cursor.fetchall():
-        related = dict(row)
-        if related["media_files"]:
-            related["media_files"] = json.loads(related["media_files"])
-        else:
-            related["media_files"] = []
+    # 原始的被回复推文（replied original）
+    cursor.execute(
+        """
+        SELECT 
+            t.*,
+            a.name as author_name,
+            a.nick as author_nick,
+            a.profile_image as author_avatar,
+            u.name as user_name,
+            u.nick as user_nick,
+            u.profile_image as user_avatar
+        FROM tweets t
+        LEFT JOIN users a ON t.author_id = a.user_id
+        LEFT JOIN users u ON t.user_id = u.user_id
+        WHERE t.reply_id = ?
+        LIMIT 1
+        """,
+        (tweet_id,),
+    )
+    replied_orig = cursor.fetchone()
+    if replied_orig:
+        ro = dict(replied_orig)
+        ro_media = []
+        if ro.get("media_files"):
+            try:
+                ro_media = json.loads(ro["media_files"])
+            except Exception:
+                ro_media = []
+        tweet["replied_info"] = {
+            "tweet_id": ro.get("tweet_id"),
+            "content": ro.get("content"),
+            "author_id": ro.get("author_id"),
+            "user_id": ro.get("user_id"),
+            "author_name": ro.get("author_name"),
+            "author_nick": ro.get("author_nick"),
+            "author_avatar": ro.get("author_avatar"),
+            "media_files": ro_media,
+        }
 
-        # 转换头像URL为本地路径
-        related = process_tweet_data(related)
-
-        related_tweets.append(related)
+    # 转换头像URL为本地路径
+    tweet = process_tweet_data(tweet)
 
     conn.close()
 
-    return render_template(
-        "tweet_detail.html", tweet=tweet, related_tweets=related_tweets
-    )
+    return render_template("tweet_detail.html", tweet=tweet)
 
 
 @app.route("/search")

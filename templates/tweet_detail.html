@@ -26,11 +26,12 @@ render_tweet_conversation %} {% block title %}推文详情 - LocalTwitter{% endb
 
 <div class="tweets-container">{{ render_tweet_conversation(tweet) }}</div>
 
-{% if related_tweets %}
+{% if false %}
 <div style="padding: 16px; border-top: 1px solid var(--border-color)">
-  <h2 style="margin-bottom: 16px; color: var(--text-color)">相关推文</h2>
+  <h2 style="margin-bottom: 16px; color: var(--text-color)">回复</h2>
   {% for tweet in related_tweets %}
   <div class="tweet" data-tweet-id="{{ tweet.tweet_id }}">
+    <!-- 显示回复当前推文的推文信息 -->
     <div class="tweet-header">
       <a
         href="/user/{{ tweet.author_id if tweet.author_id else tweet.user_id }}"

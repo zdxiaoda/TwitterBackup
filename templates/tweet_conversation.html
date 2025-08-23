@@ -1,5 +1,4 @@
-{% macro render_tweet_conversation(tweet) %} {% if tweet.is_reply and
-tweet.reply_info %}
+{% macro render_tweet_conversation(tweet) %} {% if tweet.replied_info %}
 <div class="tweet-conversation">
   <!-- 对话指示器 -->
   <div class="conversation-indicator reply">
@@ -10,37 +9,37 @@ tweet.reply_info %}
     <span class="conversation-text">回复对话</span>
   </div>
 
-  <!-- 被回复的推文 -->
-  <div class="tweet" data-tweet-id="{{ tweet.reply_id }}">
+  <!-- 被回复的原始推文 -->
+  <div class="tweet" data-tweet-id="{{ tweet.replied_info.tweet_id }}">
     <div class="tweet-header">
       <a
-        href="/user/{{ tweet.reply_info.author_id if tweet.reply_info.author_id else tweet.reply_info.user_id }}"
+        href="/user/{{ tweet.replied_info.author_id if tweet.replied_info.author_id else tweet.replied_info.user_id }}"
         class="avatar-link">
         <img
           class="avatar"
-          src="{{ tweet.reply_info.author_avatar if tweet.reply_info.author_avatar else 'data:image/svg+xml,%3Csvg xmlns=\'http://www.w3.org/2000/svg\' width=\'48\' height=\'48\' viewBox=\'0 0 48 48\'%3E%3Ccircle cx=\'24\' cy=\'24\' r=\'24\' fill=\'%23657786\'/%3E%3C/svg%3E' }}"
+          src="{{ tweet.replied_info.author_avatar if tweet.replied_info.author_avatar else 'data:image/svg+xml,%3Csvg xmlns=\'http://www.w3.org/2000/svg\' width=\'48\' height=\'48\' viewBox=\'0 0 48 48\'%3E%3Ccircle cx=\'24\' cy=\'24\' r=\'24\' fill=\'%23657786\'/%3E%3C/svg%3E' }}"
           onerror="this.src='data:image/svg+xml,%3Csvg xmlns=\'http://www.w3.org/2000/svg\' width=\'48\' height=\'48\' viewBox=\'0 0 48 48\'%3E%3Ccircle cx=\'24\' cy=\'24\' r=\'24\' fill=\'%23657786\'/%3E%3C/svg%3E'"
           alt="Avatar" />
       </a>
       <div class="tweet-info">
         <div class="tweet-author">
           <span class="name"
-            >{{ tweet.reply_info.author_nick or tweet.reply_info.author_name or
-            tweet.reply_info.author_id }}</span
+            >{{ tweet.replied_info.author_nick or tweet.replied_info.author_name
+            or tweet.replied_info.author_id }}</span
           >
           <span class="username"
-            >@{{ tweet.reply_info.author_name or tweet.reply_info.author_id
+            >@{{ tweet.replied_info.author_name or tweet.replied_info.author_id
             }}</span
           >
         </div>
       </div>
     </div>
-    <div class="tweet-content">{{ tweet.reply_info.content|safe }}</div>
-    {% if tweet.reply_info.media_files and tweet.reply_info.media_files|length >
-    0 %}
+    <div class="tweet-content">{{ tweet.replied_info.content|safe }}</div>
+    {% if tweet.replied_info.media_files and
+    tweet.replied_info.media_files|length > 0 %}
     <div
-      class="tweet-media {% if tweet.reply_info.media_files|length == 1 %}single{% elif tweet.reply_info.media_files|length == 2 %}double{% elif tweet.reply_info.media_files|length == 3 %}triple{% else %}quad{% endif %}">
-      {% for media in tweet.reply_info.media_files[:4] %}
+      class="tweet-media {% if tweet.replied_info.media_files|length == 1 %}single{% elif tweet.replied_info.media_files|length == 2 %}double{% elif tweet.replied_info.media_files|length == 3 %}triple{% else %}quad{% endif %}">
+      {% for media in tweet.replied_info.media_files[:4] %}
       <div class="media-item">
         {% if media.endswith('.mp4') or media.endswith('.mov') or
         media.endswith('.avi') %}
@@ -68,25 +67,17 @@ tweet.reply_info %}
     </div>
     {% endif %}
     <div class="tweet-header">
-      <a
-        href="/user/{{ tweet.author_id if tweet.is_retweet else tweet.user_id }}"
-        class="avatar-link">
+      <a href="/user/{{ tweet.author_id }}" class="avatar-link">
         <img
           class="avatar"
-          src="{{ tweet.author_avatar if tweet.is_retweet else tweet.user_avatar }}"
+          src="{{ tweet.author_avatar }}"
           onerror="this.src='data:image/svg+xml,%3Csvg xmlns=\'http://www.w3.org/2000/svg\' width=\'48\' height=\'48\' viewBox=\'0 0 48 48\'%3E%3Ccircle cx=\'24\' cy=\'24\' r=\'24\' fill=\'%23657786\'/%3E%3C/svg%3E'"
           alt="Avatar" />
       </a>
       <div class="tweet-info">
         <div class="tweet-author">
-          <span class="name"
-            >{{ tweet.author_nick if tweet.is_retweet else tweet.user_nick
-            }}</span
-          >
-          <span class="username"
-            >@{{ tweet.author_name if tweet.is_retweet else tweet.user_name
-            }}</span
-          >
+          <span class="name">{{ tweet.author_nick }}</span>
+          <span class="username">@{{ tweet.author_name }}</span>
           <span class="date">· {{ tweet.date|format_date }}</span>
         </div>
       </div>
@@ -148,7 +139,7 @@ tweet.reply_info %}
     </div>
   </div>
 </div>
-{% elif tweet.is_quote and tweet.quote_info %}
+{% elif tweet.quoted_info %}
 <div class="tweet-conversation">
   <!-- 对话指示器 -->
   <div class="conversation-indicator quote">
@@ -159,37 +150,37 @@ tweet.reply_info %}
     <span class="conversation-text">引用推文</span>
   </div>
 
-  <!-- 被引用的推文 -->
-  <div class="tweet" data-tweet-id="{{ tweet.quote_id }}">
+  <!-- 被引用的原始推文 -->
+  <div class="tweet" data-tweet-id="{{ tweet.quoted_info.tweet_id }}">
     <div class="tweet-header">
       <a
-        href="/user/{{ tweet.quote_info.author_id if tweet.quote_info.author_id else tweet.quote_info.user_id }}"
+        href="/user/{{ tweet.quoted_info.author_id if tweet.quoted_info.author_id else tweet.quoted_info.user_id }}"
         class="avatar-link">
         <img
           class="avatar"
-          src="{{ tweet.quote_info.author_avatar if tweet.quote_info.author_avatar else 'data:image/svg+xml,%3Csvg xmlns=\'http://www.w3.org/2000/svg\' width=\'48\' height=\'48\' viewBox=\'0 0 48 48\'%3E%3Ccircle cx=\'24\' cy=\'24\' r=\'24\' fill=\'%23657786\'/%3E%3C/svg%3E' }}"
+          src="{{ tweet.quoted_info.author_avatar if tweet.quoted_info.author_avatar else 'data:image/svg+xml,%3Csvg xmlns=\'http://www.w3.org/2000/svg\' width=\'48\' height=\'48\' viewBox=\'0 0 48 48\'%3E%3Ccircle cx=\'24\' cy=\'24\' r=\'24\' fill=\'%23657786\'/%3E%3C/svg%3E' }}"
           onerror="this.src='data:image/svg+xml,%3Csvg xmlns=\'http://www.w3.org/2000/svg\' width=\'48\' height=\'48\' viewBox=\'0 0 48 48\'%3E%3Ccircle cx=\'24\' cy=\'24\' r=\'24\' fill=\'%23657786\'/%3E%3C/svg%3E'"
           alt="Avatar" />
       </a>
       <div class="tweet-info">
         <div class="tweet-author">
           <span class="name"
-            >{{ tweet.quote_info.author_nick or tweet.quote_info.author_name or
-            tweet.quote_info.author_id }}</span
+            >{{ tweet.quoted_info.author_nick or tweet.quoted_info.author_name
+            or tweet.quoted_info.author_id }}</span
           >
           <span class="username"
-            >@{{ tweet.quote_info.author_name or tweet.quote_info.author_id
+            >@{{ tweet.quoted_info.author_name or tweet.quoted_info.author_id
             }}</span
           >
         </div>
       </div>
     </div>
-    <div class="tweet-content">{{ tweet.quote_info.content|safe }}</div>
-    {% if tweet.quote_info.media_files and tweet.quote_info.media_files|length >
-    0 %}
+    <div class="tweet-content">{{ tweet.quoted_info.content|safe }}</div>
+    {% if tweet.quoted_info.media_files and tweet.quoted_info.media_files|length
+    > 0 %}
     <div
-      class="tweet-media {% if tweet.quote_info.media_files|length == 1 %}single{% elif tweet.quote_info.media_files|length == 2 %}double{% elif tweet.quote_info.media_files|length == 3 %}triple{% else %}quad{% endif %}">
-      {% for media in tweet.quote_info.media_files[:4] %}
+      class="tweet-media {% if tweet.quoted_info.media_files|length == 1 %}single{% elif tweet.quoted_info.media_files|length == 2 %}double{% elif tweet.quoted_info.media_files|length == 3 %}triple{% else %}quad{% endif %}">
+      {% for media in tweet.quoted_info.media_files[:4] %}
       <div class="media-item">
         {% if media.endswith('.mp4') or media.endswith('.mov') or
         media.endswith('.avi') %}
@@ -217,25 +208,17 @@ tweet.reply_info %}
     </div>
     {% endif %}
     <div class="tweet-header">
-      <a
-        href="/user/{{ tweet.author_id if tweet.is_retweet else tweet.user_id }}"
-        class="avatar-link">
+      <a href="/user/{{ tweet.author_id }}" class="avatar-link">
         <img
           class="avatar"
-          src="{{ tweet.author_avatar if tweet.is_retweet else tweet.user_avatar }}"
+          src="{{ tweet.author_avatar }}"
           onerror="this.src='data:image/svg+xml,%3Csvg xmlns=\'http://www.w3.org/2000/svg\' width=\'48\' height=\'48\' viewBox=\'0 0 48 48\'%3E%3Ccircle cx=\'24\' cy=\'24\' r=\'24\' fill=\'%23657786\'/%3E%3C/svg%3E'"
           alt="Avatar" />
       </a>
       <div class="tweet-info">
         <div class="tweet-author">
-          <span class="name"
-            >{{ tweet.author_nick if tweet.is_retweet else tweet.user_nick
-            }}</span
-          >
-          <span class="username"
-            >@{{ tweet.author_name if tweet.is_retweet else tweet.user_name
-            }}</span
-          >
+          <span class="name">{{ tweet.author_nick }}</span>
+          <span class="username">@{{ tweet.author_name }}</span>
           <span class="date">· {{ tweet.date|format_date }}</span>
         </div>
       </div>
@@ -310,25 +293,17 @@ tweet.reply_info %}
   </div>
   {% endif %}
   <div class="tweet-header">
-    <a
-      href="/user/{{ tweet.author_id if tweet.is_retweet else tweet.user_id }}"
-      class="avatar-link">
+    <a href="/user/{{ tweet.author_id }}" class="avatar-link">
       <img
         class="avatar"
-        src="{{ tweet.author_avatar if tweet.is_retweet else tweet.user_avatar }}"
+        src="{{ tweet.author_avatar }}"
         onerror="this.src='data:image/svg+xml,%3Csvg xmlns=\'http://www.w3.org/2000/svg\' width=\'48\' height=\'48\' viewBox=\'0 0 48 48\'%3E%3Ccircle cx=\'24\' cy=\'24\' r=\'24\' fill=\'%23657786\'/%3E%3C/svg%3E'"
         alt="Avatar" />
     </a>
     <div class="tweet-info">
       <div class="tweet-author">
-        <span class="name"
-          >{{ tweet.author_nick if tweet.is_retweet else tweet.user_nick
-          }}</span
-        >
-        <span class="username"
-          >@{{ tweet.author_name if tweet.is_retweet else tweet.user_name
-          }}</span
-        >
+        <span class="name">{{ tweet.author_nick }}</span>
+        <span class="username">@{{ tweet.author_name }}</span>
         <span class="date">· {{ tweet.date|format_date }}</span>
       </div>
     </div>
