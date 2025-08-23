@@ -243,6 +243,31 @@
         min-height: 48px;
       }
 
+      /* 紧凑子卡片（引用/回复原文） */
+      .tweet.subtweet {
+        border: 1px dashed var(--border-color);
+        border-radius: 12px;
+        margin: 8px 16px 0 60px;
+        padding: 8px 12px;
+        background: var(--hover-bg-color);
+      }
+
+      .tweet.subtweet .avatar {
+        width: 36px;
+        height: 36px;
+        margin-right: 8px;
+      }
+
+      .tweet.subtweet .tweet-content,
+      .tweet.subtweet .tweet-media,
+      .tweet.subtweet .tweet-stats {
+        margin-left: 44px;
+      }
+
+      .tweet.subtweet .tweet-media .media-item {
+        height: auto;
+      }
+
       .avatar {
         width: 48px;
         height: 48px;
@@ -272,6 +297,15 @@
         display: flex;
         align-items: center;
         gap: 4px;
+      }
+
+      /* 长名称与用户名省略展示 */
+      .tweet-author .name,
+      .tweet-author .username {
+        max-width: 180px;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
       }
 
       .name {
