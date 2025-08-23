@@ -1,0 +1,591 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>{% block title %}LocalTwitter{% endblock %}</title>
+    <link
+      rel="stylesheet"
+      href="/static/fontawesome-free-7.0.0-web/css/all.min.css" />
+    <link rel="stylesheet" href="/static/css/modern.css" />
+  </head>
+  <body>
+    <div class="container">{% block content %}{% endblock %}</div>
+
+    <!-- 设置模态框 -->
+    <div id="settings-modal" class="modal">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h3 class="modal-title">翻译设置</h3>
+          <button class="close-btn" onclick="closeSettings()">
+            <i class="fas fa-times"></i>
+          </button>
+        </div>
+        <form class="settings-form" id="settings-form">
+          <div class="form-group">
+            <label class="form-label">翻译服务</label>
+            <select
+              class="form-select"
+              id="translation-service"
+              name="translation_service">
+              <option value="openai">OpenAI GPT</option>
+              <option value="google">Google Translate</option>
+              <option value="baidu">百度翻译</option>
+              <option value="youdao">有道翻译</option>
+              <option value="deepl">DeepL</option>
+            </select>
+          </div>
+          <div class="form-group" id="openai-model-group" style="display: none">
+            <label class="form-label">OpenAI模型</label>
+            <select class="form-select" id="openai-model" name="openai_model">
+              <option value="gpt-3.5-turbo">GPT-3.5 Turbo</option>
+              <option value="gpt-4">GPT-4</option>
+              <option value="gpt-4-turbo">GPT-4 Turbo</option>
+              <option value="gpt-4o">GPT-4o</option>
+              <option value="gpt-4o-mini">GPT-4o Mini</option>
+              <option value="custom">自定义模型</option>
+            </select>
+          </div>
+          <div class="form-group" id="custom-model-group" style="display: none">
+            <label class="form-label">自定义模型名称</label>
+            <input
+              type="text"
+              class="form-input"
+              id="custom-model"
+              name="custom_model"
+              placeholder="例如: gpt-4-1106-preview" />
+          </div>
+          <div class="form-group">
+            <label class="form-label">API Key</label>
+            <input
+              type="password"
+              class="form-input"
+              id="api-key"
+              name="api_key"
+              placeholder="请输入API密钥" />
+          </div>
+          <div class="form-group" id="api-secret-group" style="display: none">
+            <label class="form-label">API Secret</label>
+            <input
+              type="password"
+              class="form-input"
+              id="api-secret"
+              name="api_secret"
+              placeholder="请输入API密钥" />
+          </div>
+          <div class="form-group" id="api-url-group" style="display: none">
+            <label class="form-label">API URL</label>
+            <input
+              type="text"
+              class="form-input"
+              id="api-url"
+              name="api_url"
+              placeholder="自定义API地址" />
+          </div>
+          <div class="form-actions">
+            <button
+              type="button"
+              class="btn btn-secondary"
+              onclick="closeSettings()">
+              取消
+            </button>
+            <button type="submit" class="btn btn-primary" id="save-settings">
+              保存设置
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+
+    <script>
+      // 处理媒体懒加载
+      document.addEventListener("DOMContentLoaded", function () {
+        const mediaItems = document.querySelectorAll(
+          ".media-item img, .media-item video"
+        );
+        const lazyLoad = new IntersectionObserver((entries) => {
+          entries.forEach((entry) => {
+            if (entry.isIntersecting) {
+              const media = entry.target;
+              if (media.dataset.src) {
+                media.src = media.dataset.src;
+                delete media.dataset.src;
+              }
+            }
+          });
+        });
+        mediaItems.forEach((media) => lazyLoad.observe(media));
+      });
+
+      // 处理推文点击
+      document.querySelectorAll(".tweet").forEach((tweet) => {
+        tweet.addEventListener("click", function (e) {
+          if (
+            !e.target.closest("a") &&
+            !e.target.closest(".translate-btn") &&
+            !e.target.closest(".target-language") &&
+            !e.target.closest(".close-translation") &&
+            !e.target.closest(".translation-controls")
+          ) {
+            const tweetId = this.dataset.tweetId;
+            if (tweetId) {
+              window.location.href = `/tweet/${tweetId}`;
+            }
+          }
+        });
+      });
+
+      // 主题切换功能
+      document.addEventListener("DOMContentLoaded", function () {
+        const themeToggle = document.getElementById("theme-toggle");
+        const settingsToggle = document.getElementById("settings-toggle");
+        const body = document.body;
+
+        // 从localStorage加载保存的主题
+        const savedTheme = localStorage.getItem("theme");
+        if (savedTheme === "dark-mode") {
+          body.setAttribute("data-theme", "dark");
+          themeToggle.innerHTML = '<i class="fas fa-moon"></i>';
+        } else {
+          themeToggle.innerHTML = '<i class="fas fa-sun"></i>';
+        }
+
+        themeToggle.addEventListener("click", function () {
+          if (body.getAttribute("data-theme") === "dark") {
+            body.removeAttribute("data-theme");
+            localStorage.setItem("theme", "light-mode");
+            themeToggle.innerHTML = '<i class="fas fa-sun"></i>';
+          } else {
+            body.setAttribute("data-theme", "dark");
+            localStorage.setItem("theme", "dark-mode");
+            themeToggle.innerHTML = '<i class="fas fa-moon"></i>';
+          }
+        });
+
+        // 设置按钮点击事件
+        settingsToggle.addEventListener("click", function () {
+          openSettings();
+        });
+
+        // 加载保存的设置
+        loadSettings();
+      });
+
+      // 设置相关函数
+      function openSettings() {
+        const modal = document.getElementById("settings-modal");
+        modal.style.display = "block";
+      }
+
+      function closeSettings() {
+        const modal = document.getElementById("settings-modal");
+        modal.style.display = "none";
+      }
+
+      function loadSettings() {
+        const settings = JSON.parse(
+          localStorage.getItem("translationSettings") || "{}"
+        );
+        document.getElementById("translation-service").value =
+          settings.translation_service || "google";
+        document.getElementById("openai-model").value =
+          settings.openai_model || "gpt-3.5-turbo";
+        document.getElementById("custom-model").value =
+          settings.custom_model || "";
+        document.getElementById("api-key").value = settings.api_key || "";
+        document.getElementById("api-secret").value = settings.api_secret || "";
+        document.getElementById("api-url").value = settings.api_url || "";
+        toggleModelSelection();
+        updateApiKeyPlaceholder();
+      }
+
+      function toggleModelSelection() {
+        const serviceType = document.getElementById(
+          "translation-service"
+        ).value;
+        const modelGroup = document.getElementById("openai-model-group");
+        const customModelGroup = document.getElementById("custom-model-group");
+        const apiSecretGroup = document.getElementById("api-secret-group");
+        const apiUrlGroup = document.getElementById("api-url-group");
+
+        if (serviceType === "openai") {
+          modelGroup.style.display = "block";
+          const modelSelect = document.getElementById("openai-model");
+          if (modelSelect.value === "custom") {
+            customModelGroup.style.display = "block";
+          } else {
+            customModelGroup.style.display = "none";
+          }
+          apiSecretGroup.style.display = "none";
+        } else {
+          modelGroup.style.display = "none";
+          customModelGroup.style.display = "none";
+        }
+
+        if (serviceType === "baidu" || serviceType === "youdao") {
+          apiSecretGroup.style.display = "block";
+        } else {
+          apiSecretGroup.style.display = "none";
+        }
+
+        if (
+          serviceType === "openai" ||
+          serviceType === "google" ||
+          serviceType === "deepl"
+        ) {
+          apiUrlGroup.style.display = "block";
+        } else {
+          apiUrlGroup.style.display = "none";
+        }
+
+        updateApiKeyPlaceholder();
+      }
+
+      function toggleCustomModel() {
+        const modelSelect = document.getElementById("openai-model");
+        const customModelGroup = document.getElementById("custom-model-group");
+        if (modelSelect.value === "custom") {
+          customModelGroup.style.display = "block";
+        } else {
+          customModelGroup.style.display = "none";
+        }
+      }
+
+      function updateApiKeyPlaceholder() {
+        const serviceType = document.getElementById(
+          "translation-service"
+        ).value;
+        const apiKeyInput = document.getElementById("api-key");
+        const apiSecretInput = document.getElementById("api-secret");
+        const apiUrlInput = document.getElementById("api-url");
+
+        const keyPlaceholders = {
+          openai: "请输入OpenAI API Key",
+          google: "请输入Google API Key",
+          baidu: "请输入百度翻译App ID",
+          youdao: "请输入有道翻译App Key",
+          deepl: "请输入DeepL API Key",
+        };
+
+        const secretPlaceholders = {
+          baidu: "请输入百度翻译App Secret",
+          youdao: "请输入有道翻译App Secret",
+        };
+
+        const urlPlaceholders = {
+          openai:
+            "例如: https://api.openai.com/v1 或 https://your-domain.com/v1",
+          google:
+            "例如: https://translation.googleapis.com/language/translate/v2",
+          deepl:
+            "例如: https://api-free.deepl.com/v2/translate 或 https://api-pro.deepl.com/v2/translate",
+        };
+
+        apiKeyInput.placeholder =
+          keyPlaceholders[serviceType] || "请输入API密钥";
+        apiSecretInput.placeholder =
+          secretPlaceholders[serviceType] || "请输入API密钥";
+        apiUrlInput.placeholder =
+          urlPlaceholders[serviceType] || "自定义API地址";
+      }
+
+      function saveSettings() {
+        const form = document.getElementById("settings-form");
+        const formData = new FormData(form);
+        const settings = {
+          translation_service: formData.get("translation_service"),
+          openai_model: formData.get("openai_model"),
+          custom_model: formData.get("custom_model"),
+          api_key: formData.get("api_key"),
+          api_secret: formData.get("api_secret"),
+          api_url: formData.get("api_url"),
+        };
+        localStorage.setItem("translationSettings", JSON.stringify(settings));
+
+        const saveButton = document.getElementById("save-settings");
+        const originalText = saveButton.textContent;
+        saveButton.textContent = "已保存";
+        saveButton.disabled = true;
+
+        setTimeout(() => {
+          saveButton.textContent = originalText;
+          saveButton.disabled = false;
+          closeSettings();
+        }, 1000);
+      }
+
+      // 设置表单提交事件
+      document.addEventListener("DOMContentLoaded", function () {
+        const settingsForm = document.getElementById("settings-form");
+        settingsForm.addEventListener("submit", function (e) {
+          e.preventDefault();
+          saveSettings();
+        });
+
+        const translationService = document.getElementById(
+          "translation-service"
+        );
+        translationService.addEventListener("change", function () {
+          toggleModelSelection();
+        });
+
+        const openaiModel = document.getElementById("openai-model");
+        openaiModel.addEventListener("change", function () {
+          toggleCustomModel();
+        });
+
+        const modal = document.getElementById("settings-modal");
+        modal.addEventListener("click", function (e) {
+          if (e.target === modal) {
+            closeSettings();
+          }
+        });
+      });
+
+      // 翻译功能JavaScript代码
+      let translationCache = {};
+
+      async function translateTweet(button, tweetId) {
+        const tweetElement = document.querySelector(
+          `[data-tweet-id="${tweetId}"]`
+        );
+        if (!tweetElement) return;
+
+        const contentElement = tweetElement.querySelector(".tweet-content");
+        const originalContent =
+          contentElement.querySelector(".original-content");
+        const translatedContent = contentElement.querySelector(
+          ".translated-content"
+        );
+        const loadingElement = translatedContent.querySelector(
+          ".translation-loading"
+        );
+        const resultElement = translatedContent.querySelector(
+          ".translation-result"
+        );
+        const errorElement =
+          translatedContent.querySelector(".translation-error");
+        const targetLanguageSelect =
+          contentElement.querySelector(".target-language");
+
+        const targetLang = targetLanguageSelect.value;
+        const originalText = originalContent.textContent.trim();
+
+        const cacheKey = `${originalText}_${targetLang}`;
+        if (translationCache[cacheKey]) {
+          showTranslation(tweetId, translationCache[cacheKey]);
+          return;
+        }
+
+        const settings = JSON.parse(
+          localStorage.getItem("translationSettings") || "{}"
+        );
+        if (!settings.api_key) {
+          showTranslationError(tweetId, "请先在设置中配置翻译API");
+          return;
+        }
+
+        button.disabled = true;
+        button.innerHTML = '<i class="fas fa-spinner fa-spin"></i> 翻译中...';
+        translatedContent.style.display = "block";
+        loadingElement.style.display = "block";
+        resultElement.style.display = "none";
+        errorElement.style.display = "none";
+
+        try {
+          const response = await fetch("/api/translate", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              content: originalText,
+              target_lang: targetLang,
+              translation_service: settings.translation_service,
+              openai_model:
+                settings.openai_model === "custom"
+                  ? settings.custom_model
+                  : settings.openai_model,
+              api_key: settings.api_key,
+              api_secret: settings.api_secret,
+              api_url: settings.api_url,
+            }),
+          });
+
+          const result = await response.json();
+
+          if (result.success) {
+            translationCache[cacheKey] = result;
+            showTranslation(tweetId, result);
+          } else {
+            showTranslationError(tweetId, result.error);
+          }
+        } catch (error) {
+          showTranslationError(tweetId, "网络错误，请稍后重试");
+        } finally {
+          button.disabled = false;
+          button.innerHTML = '<i class="fas fa-language"></i> 翻译';
+          loadingElement.style.display = "none";
+        }
+      }
+
+      function showTranslation(tweetId, result) {
+        const tweetElement = document.querySelector(
+          `[data-tweet-id="${tweetId}"]`
+        );
+        if (!tweetElement) return;
+
+        const contentElement = tweetElement.querySelector(".tweet-content");
+        const translatedContent = contentElement.querySelector(
+          ".translated-content"
+        );
+        const resultElement = translatedContent.querySelector(
+          ".translation-result"
+        );
+        const errorElement =
+          translatedContent.querySelector(".translation-error");
+
+        translatedContent.style.display = "block";
+        resultElement.style.display = "block";
+        errorElement.style.display = "none";
+
+        resultElement.innerHTML = `
+          <div class="translation-header">
+            <span class="translation-label">翻译 (${
+              result.target_lang_name || "中文"
+            })</span>
+            <button class="close-translation" onclick="hideTranslation('${tweetId}')">
+              <i class="fas fa-times"></i>
+            </button>
+          </div>
+          <div class="translation-text"></div>
+        `;
+        const textNode = resultElement.querySelector(".translation-text");
+        if (textNode) {
+          textNode.textContent = result.translated || "";
+        }
+      }
+
+      function showTranslationError(tweetId, error) {
+        const tweetElement = document.querySelector(
+          `[data-tweet-id="${tweetId}"]`
+        );
+        if (!tweetElement) return;
+
+        const contentElement = tweetElement.querySelector(".tweet-content");
+        const translatedContent = contentElement.querySelector(
+          ".translated-content"
+        );
+        const resultElement = translatedContent.querySelector(
+          ".translation-result"
+        );
+        const errorElement =
+          translatedContent.querySelector(".translation-error");
+
+        translatedContent.style.display = "block";
+        resultElement.style.display = "none";
+        errorElement.style.display = "block";
+
+        errorElement.innerHTML = `
+          <div class="translation-error-content">
+            <i class="fas fa-exclamation-triangle"></i>
+            <span>${error}</span>
+          </div>
+        `;
+      }
+
+      function hideTranslation(tweetId) {
+        const tweetElement = document.querySelector(
+          `[data-tweet-id="${tweetId}"]`
+        );
+        if (!tweetElement) return;
+
+        const contentElement = tweetElement.querySelector(".tweet-content");
+        const translatedContent = contentElement.querySelector(
+          ".translated-content"
+        );
+        translatedContent.style.display = "none";
+      }
+
+      function changeTargetLanguage(select, tweetId) {
+        const tweetElement = document.querySelector(
+          `[data-tweet-id="${tweetId}"]`
+        );
+        if (!tweetElement) return;
+
+        const translatedContent = tweetElement.querySelector(
+          ".translated-content"
+        );
+        if (translatedContent.style.display === "block") {
+          const button = tweetElement.querySelector(".translate-btn");
+          translateTweet(button, tweetId);
+        }
+      }
+
+      // 页面加载完成后初始化翻译功能
+      document.addEventListener("DOMContentLoaded", function () {
+        const tweets = document.querySelectorAll(".tweet");
+        tweets.forEach((tweet) => {
+          const tweetId = tweet.getAttribute("data-tweet-id");
+          if (tweetId) {
+            const contentElement = tweet.querySelector(".tweet-content");
+            if (
+              contentElement &&
+              !contentElement.querySelector(".translation-controls")
+            ) {
+              const originalContent = contentElement.innerHTML;
+              contentElement.innerHTML = `
+                <div class="original-content">
+                  ${originalContent}
+                </div>
+                <div class="translation-controls">
+                  <button class="translate-btn" onclick="translateTweet(this, '${tweetId}')" data-tweet-id="${tweetId}">
+                    <i class="fas fa-language"></i> 翻译
+                  </button>
+                  <select class="target-language" onchange="changeTargetLanguage(this, '${tweetId}')" data-tweet-id="${tweetId}">
+                    <option value="zh">中文</option>
+                    <option value="en">English</option>
+                    <option value="ja">日本語</option>
+                    <option value="ko">한국어</option>
+                    <option value="es">Español</option>
+                    <option value="fr">Français</option>
+                    <option value="de">Deutsch</option>
+                    <option value="ru">Русский</option>
+                  </select>
+                </div>
+                <div class="translated-content" id="translated-${tweetId}" style="display: none;">
+                  <div class="translation-loading" style="display: none;">
+                    <i class="fas fa-spinner fa-spin"></i> 翻译中...
+                  </div>
+                  <div class="translation-result"></div>
+                  <div class="translation-error" style="display: none;"></div>
+                </div>
+              `;
+            }
+          }
+        });
+      });
+    </script>
+  </body>
+</html>
+
+{% macro render_pagination(pagination, page, total_pages, base_url) %} {% if
+total_pages > 1 %}
+<div class="pagination">
+  {% if page > 1 %}
+  <a href="{{ base_url }}page={{ page - 1 }}">上一页</a>
+  {% endif %} {% if pagination.show_first %}
+  <a href="{{ base_url }}page=1">1</a>
+  {% if pagination.show_prev_dots %}
+  <span class="dots">...</span>
+  {% endif %} {% endif %} {% for p in pagination.pages %} {% if p == page %}
+  <a class="current">{{ p }}</a>
+  {% else %}
+  <a href="{{ base_url }}page={{ p }}">{{ p }}</a>
+  {% endif %} {% endfor %} {% if pagination.show_next_dots %}
+  <span class="dots">...</span>
+  {% endif %} {% if pagination.show_last %}
+  <a href="{{ base_url }}page={{ total_pages }}">{{ total_pages }}</a>
+  {% endif %} {% if page < total_pages %}
+  <a href="{{ base_url }}page={{ page + 1 }}">下一页</a>
+  {% endif %}
+</div>
+{% endif %} {% endmacro %}

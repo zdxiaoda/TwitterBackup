@@ -1,0 +1,20 @@
+{% macro render_header(title, subtitle=None) %}
+<div class="header">
+  <div class="header-left">
+    <div>
+      <h1>{{ title }}</h1>
+      {% if subtitle %}
+      <div class="header-subtitle">{{ subtitle }}</div>
+      {% endif %}
+    </div>
+  </div>
+  <div style="display: flex; align-items: center">
+    <button class="btn btn-icon" id="theme-toggle">
+      <i class="fas fa-sun"></i>
+    </button>
+    <button class="btn btn-icon" id="settings-toggle">
+      <i class="fas fa-cog"></i>
+    </button>
+  </div>
+</div>
+{% endmacro %}

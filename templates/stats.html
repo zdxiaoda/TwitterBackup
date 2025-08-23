@@ -1,22 +1,8 @@
-{% extends "base.html" %} {% block title %}统计 - LocalTwitter{% endblock %} {%
-block content %}
-<div class="header">
-  <h1>统计信息</h1>
-  <div style="display: flex; align-items: center">
-    <button id="theme-toggle" class="theme-toggle">
-      <i class="fas fa-sun"></i>
-    </button>
-    <button class="settings-toggle" id="settings-toggle">
-      <i class="fas fa-cog"></i>
-    </button>
-  </div>
-</div>
-
-<div class="nav">
-  <a href="/">时间线</a>
-  <a href="/stats" class="active">统计</a>
-  <a href="/search">搜索</a>
-</div>
+{% extends "base_modern.html" %} {% from "components/header.html" import
+render_header %} {% from "components/navigation.html" import render_navigation
+%} {% from "components/tweet_card.html" import render_tweet_card %} {% block
+title %}统计 - LocalTwitter{% endblock %} {% block content %} {{
+render_header("统计信息") }} {{ render_navigation("stats") }}
 
 <div class="stats-grid">
   <div class="stat-card">
@@ -51,7 +37,7 @@ block content %}
 </div>
 
 <div style="padding: 16px">
-  <h2 style="margin-bottom: 16px; color: var(--text-color)">最活跃用户</h2>
+  <h2 style="margin-bottom: 16px; color: var(--text-primary)">最活跃用户</h2>
   {% for user in stats.top_users %}
   <div
     class="user-card"
@@ -76,21 +62,23 @@ block content %}
 </div>
 
 <div style="padding: 16px">
-  <h2 style="margin-bottom: 16px; color: var(--text-color)">最受欢迎的推文</h2>
+  <h2 style="margin-bottom: 16px; color: var(--text-primary)">
+    最受欢迎的推文
+  </h2>
   {% for tweet in stats.top_tweets %}
   <div class="tweet" data-tweet-id="{{ tweet.tweet_id }}">
     <div class="tweet-header">
-      <a href="/user/{{ tweet.user_id }}" class="avatar-link">
+      <a href="/user/{{ tweet.author_id }}" class="avatar-link">
         <img
           class="avatar"
-          src="{{ tweet.user_avatar }}"
+          src="{{ tweet.author_avatar }}"
           onerror="this.src='data:image/svg+xml,%3Csvg xmlns=\'http://www.w3.org/2000/svg\' width=\'48\' height=\'48\' viewBox=\'0 0 48 48\'%3E%3Ccircle cx=\'24\' cy=\'24\' r=\'24\' fill=\'%23657786\'/%3E%3C/svg%3E'"
           alt="Avatar" />
       </a>
       <div class="tweet-info">
         <div class="tweet-author">
-          <span class="name">{{ tweet.user_name }}</span>
-          <span class="username">@{{ tweet.user_nick }}</span>
+          <span class="name">{{ tweet.author_nick }}</span>
+          <span class="username">@{{ tweet.author_name }}</span>
           <span class="date">· {{ tweet.date|format_date }}</span>
         </div>
       </div>

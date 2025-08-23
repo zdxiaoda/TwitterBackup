@@ -670,7 +670,7 @@ def index():
     pagination = get_pagination_range(page, total_pages)
 
     return render_template(
-        "index.html",
+        "index_modern.html",
         tweets=tweets,
         page=page,
         total_pages=total_pages,
@@ -1276,11 +1276,11 @@ def stats():
         """
         SELECT 
             t.*,
-            u.name as user_name,
-            u.nick as user_nick,
-            u.profile_image as user_avatar
+            a.name as author_name,
+            a.nick as author_nick,
+            a.profile_image as author_avatar
         FROM tweets t
-        LEFT JOIN users u ON t.user_id = u.user_id
+        LEFT JOIN users a ON t.author_id = a.user_id
         ORDER BY t.favorite_count DESC
         LIMIT 10
     """

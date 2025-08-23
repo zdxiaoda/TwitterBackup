@@ -1,0 +1,19 @@
+{% extends "base_modern.html" %} {% from "components/header.html" import
+render_header %} {% from "components/navigation.html" import render_navigation
+%} {% from "components/tweet_card.html" import render_tweet_card %} {% from
+"tweet_conversation.html" import render_tweet_conversation %} {% from
+"base_modern.html" import render_pagination %} {% block title %}首页 -
+LocalTwitter{% endblock %} {% block content %} {{ render_header("首页", "共 " +
+total_tweets|string + " 条推文 · " + total_users|string + " 位用户 · " +
+total_media|string + " 个媒体文件") }} {{ render_navigation("home") }}
+
+<div class="tweets-container">
+  {% for tweet in tweets %} {{ render_tweet_conversation(tweet) }} {% endfor %}
+</div>
+
+{{ render_pagination(pagination, page, total_pages, "/?") }} {% if tweets|length
+== 0 %}
+<div class="empty">
+  <p>暂无推文</p>
+</div>
+{% endif %} {% endblock %}

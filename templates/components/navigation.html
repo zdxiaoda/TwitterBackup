@@ -1,0 +1,17 @@
+{% macro render_navigation(active_page) %}
+<div class="nav">
+  <a href="/" class="nav-link{% if active_page == 'home' %} active{% endif %}"
+    >时间线</a
+  >
+  <a
+    href="/stats"
+    class="nav-link{% if active_page == 'stats' %} active{% endif %}"
+    >统计</a
+  >
+  <a
+    href="/search"
+    class="nav-link{% if active_page == 'search' %} active{% endif %}"
+    >搜索</a
+  >
+</div>
+{% endmacro %}
