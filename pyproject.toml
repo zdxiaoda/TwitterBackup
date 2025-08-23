@@ -5,6 +5,8 @@ description = "Add your description here"
 readme = "README.md"
 requires-python = ">=3.12"
 dependencies = [
+    "flask>=2.0.0",
+    "flask-sqlalchemy>=2.5.0",
     "pandas>=1.5.0",
     "pathlib2>=2.3.5",
     "requests>=2.25.1",

@@ -1,0 +1,443 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>{% block title %}Twitter 备份查看器{% endblock %}</title>
+    <style>
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+
+      body {
+        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
+          Helvetica, Arial, sans-serif;
+        background-color: #000;
+        color: #e7e9ea;
+        line-height: 1.5;
+      }
+
+      .container {
+        max-width: 600px;
+        margin: 0 auto;
+        min-height: 100vh;
+        border-left: 1px solid #2f3336;
+        border-right: 1px solid #2f3336;
+        background-color: #000;
+      }
+
+      .header {
+        position: sticky;
+        top: 0;
+        background-color: rgba(0, 0, 0, 0.85);
+        backdrop-filter: blur(12px);
+        border-bottom: 1px solid #2f3336;
+        padding: 16px;
+        z-index: 100;
+      }
+
+      .header h1 {
+        font-size: 20px;
+        font-weight: 700;
+      }
+
+      .nav {
+        display: flex;
+        border-bottom: 1px solid #2f3336;
+      }
+
+      .nav a {
+        flex: 1;
+        padding: 16px;
+        text-align: center;
+        color: #71767b;
+        text-decoration: none;
+        font-weight: 500;
+        transition: background-color 0.2s;
+      }
+
+      .nav a:hover {
+        background-color: #181818;
+      }
+
+      .nav a.active {
+        color: #e7e9ea;
+        border-bottom: 4px solid #1d9bf0;
+      }
+
+      .tweet {
+        padding: 12px 16px;
+        border-bottom: 1px solid #2f3336;
+        cursor: pointer;
+        transition: background-color 0.2s;
+      }
+
+      .tweet:hover {
+        background-color: #080808;
+      }
+
+      .tweet-header {
+        display: flex;
+        align-items: center;
+        margin-bottom: 4px;
+      }
+
+      .avatar {
+        width: 48px;
+        height: 48px;
+        border-radius: 50%;
+        margin-right: 12px;
+        object-fit: cover;
+      }
+
+      .tweet-info {
+        flex: 1;
+      }
+
+      .tweet-author {
+        display: flex;
+        align-items: center;
+        gap: 4px;
+      }
+
+      .name {
+        font-weight: 700;
+        color: #e7e9ea;
+      }
+
+      .username {
+        color: #71767b;
+      }
+
+      .date {
+        color: #71767b;
+        margin-left: 4px;
+      }
+
+      .retweet-info {
+        color: #71767b;
+        font-size: 13px;
+        margin-bottom: 8px;
+        display: flex;
+        align-items: center;
+        gap: 4px;
+      }
+
+      .retweet-icon {
+        width: 16px;
+        height: 16px;
+        fill: #71767b;
+      }
+
+      .tweet-content {
+        margin-left: 60px;
+        white-space: pre-wrap;
+        word-wrap: break-word;
+      }
+
+      .tweet-media {
+        margin-left: 60px;
+        margin-top: 12px;
+        display: grid;
+        gap: 2px;
+        border-radius: 16px;
+        overflow: hidden;
+      }
+
+      .tweet-media.single {
+        grid-template-columns: 1fr;
+      }
+
+      .tweet-media.double {
+        grid-template-columns: 1fr 1fr;
+      }
+
+      .tweet-media.triple {
+        grid-template-columns: 1fr 1fr;
+      }
+
+      .tweet-media.quad {
+        grid-template-columns: 1fr 1fr;
+      }
+
+      .media-item {
+        position: relative;
+        background-color: #16181c;
+        overflow: hidden;
+      }
+
+      .media-item img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+      }
+
+      .media-item video {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+      }
+
+      .tweet-media.single .media-item {
+        max-height: 500px;
+      }
+
+      .tweet-media.double .media-item,
+      .tweet-media.triple .media-item,
+      .tweet-media.quad .media-item {
+        height: 280px;
+      }
+
+      .tweet-stats {
+        margin-left: 60px;
+        margin-top: 12px;
+        display: flex;
+        gap: 32px;
+        color: #71767b;
+        font-size: 13px;
+      }
+
+      .stat {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        cursor: pointer;
+        transition: color 0.2s;
+      }
+
+      .stat:hover {
+        color: #1d9bf0;
+      }
+
+      .stat-icon {
+        width: 18px;
+        height: 18px;
+        fill: currentColor;
+      }
+
+      .search-box {
+        padding: 12px 16px;
+        border-bottom: 1px solid #2f3336;
+      }
+
+      .search-input {
+        width: 100%;
+        padding: 12px;
+        background-color: #202327;
+        border: 1px solid #2f3336;
+        border-radius: 9999px;
+        color: #e7e9ea;
+        font-size: 15px;
+      }
+
+      .search-input:focus {
+        outline: none;
+        border-color: #1d9bf0;
+        background-color: #000;
+      }
+
+      .user-card {
+        display: flex;
+        align-items: center;
+        padding: 12px 16px;
+        border-bottom: 1px solid #2f3336;
+        cursor: pointer;
+        transition: background-color 0.2s;
+      }
+
+      .user-card:hover {
+        background-color: #080808;
+      }
+
+      .user-info {
+        flex: 1;
+        margin-left: 12px;
+      }
+
+      .user-stats {
+        display: flex;
+        gap: 16px;
+        margin-top: 4px;
+        font-size: 14px;
+        color: #71767b;
+      }
+
+      .pagination {
+        display: flex;
+        justify-content: center;
+        padding: 16px;
+        gap: 8px;
+      }
+
+      .pagination a {
+        padding: 8px 16px;
+        background-color: #16181c;
+        color: #e7e9ea;
+        text-decoration: none;
+        border-radius: 9999px;
+        transition: background-color 0.2s;
+      }
+
+      .pagination a:hover {
+        background-color: #1d1f23;
+      }
+
+      .pagination .current {
+        background-color: #1d9bf0;
+        color: #fff;
+      }
+
+      .stats-grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 16px;
+        padding: 16px;
+      }
+
+      .stat-card {
+        background-color: #16181c;
+        padding: 16px;
+        border-radius: 16px;
+      }
+
+      .stat-value {
+        font-size: 28px;
+        font-weight: 700;
+        color: #e7e9ea;
+      }
+
+      .stat-label {
+        color: #71767b;
+        margin-top: 4px;
+      }
+
+      .profile-header {
+        position: relative;
+      }
+
+      .profile-banner {
+        width: 100%;
+        height: 200px;
+        object-fit: cover;
+        background-color: #333639;
+      }
+
+      .profile-info {
+        padding: 16px;
+        margin-top: -48px;
+      }
+
+      .profile-avatar {
+        width: 120px;
+        height: 120px;
+        border-radius: 50%;
+        border: 4px solid #000;
+        margin-bottom: 16px;
+      }
+
+      .profile-name {
+        font-size: 20px;
+        font-weight: 700;
+        margin-bottom: 4px;
+      }
+
+      .profile-username {
+        color: #71767b;
+        margin-bottom: 12px;
+      }
+
+      .profile-bio {
+        margin-bottom: 12px;
+      }
+
+      .profile-stats {
+        display: flex;
+        gap: 24px;
+        color: #71767b;
+      }
+
+      .profile-stat strong {
+        color: #e7e9ea;
+      }
+
+      .hashtag {
+        color: #1d9bf0;
+        cursor: pointer;
+      }
+
+      .hashtag:hover {
+        text-decoration: underline;
+      }
+
+      .loading {
+        text-align: center;
+        padding: 32px;
+        color: #71767b;
+      }
+
+      .empty {
+        text-align: center;
+        padding: 64px 16px;
+        color: #71767b;
+      }
+
+      .error {
+        background-color: #200914;
+        border: 1px solid #67060c;
+        color: #f4212e;
+        padding: 12px;
+        margin: 16px;
+        border-radius: 8px;
+      }
+
+      .success {
+        background-color: #071a14;
+        border: 1px solid #065535;
+        color: #00ba7c;
+        padding: 12px;
+        margin: 16px;
+        border-radius: 8px;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container">{% block content %}{% endblock %}</div>
+
+    <script>
+      // 处理媒体懒加载
+      document.addEventListener("DOMContentLoaded", function () {
+        const mediaItems = document.querySelectorAll(
+          ".media-item img, .media-item video"
+        );
+
+        const lazyLoad = new IntersectionObserver((entries) => {
+          entries.forEach((entry) => {
+            if (entry.isIntersecting) {
+              const media = entry.target;
+              if (media.dataset.src) {
+                media.src = media.dataset.src;
+                delete media.dataset.src;
+              }
+            }
+          });
+        });
+
+        mediaItems.forEach((media) => lazyLoad.observe(media));
+      });
+
+      // 处理推文点击
+      document.querySelectorAll(".tweet").forEach((tweet) => {
+        tweet.addEventListener("click", function (e) {
+          if (!e.target.closest("a")) {
+            const tweetId = this.dataset.tweetId;
+            if (tweetId) {
+              window.location.href = `/tweet/${tweetId}`;
+            }
+          }
+        });
+      });
+    </script>
+  </body>
+</html>

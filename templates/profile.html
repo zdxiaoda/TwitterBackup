@@ -1,0 +1,177 @@
+{% extends "base.html" %} {% block title %}{{ user.name }} (@{{ user.nick }}) -
+Twitter 备份查看器{% endblock %} {% block content %}
+<div class="profile-header">
+  {% if user.profile_banner %}
+  <img class="profile-banner" src="{{ user.profile_banner }}" alt="Banner" />
+  {% else %}
+  <div
+    class="profile-banner"
+    style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%)"></div>
+  {% endif %}
+</div>
+
+<div class="profile-info">
+  <img
+    class="profile-avatar"
+    src="{{ user.profile_image }}"
+    onerror="this.src='data:image/svg+xml,%3Csvg xmlns=\'http://www.w3.org/2000/svg\' width=\'120\' height=\'120\' viewBox=\'0 0 120 120\'%3E%3Ccircle cx=\'60\' cy=\'60\' r=\'60\' fill=\'%23657786\'/%3E%3C/svg%3E'"
+    alt="Avatar" />
+
+  <div class="profile-name">{{ user.name }}</div>
+  <div class="profile-username">@{{ user.nick }}</div>
+
+  {% if user.description %}
+  <div class="profile-bio">{{ user.description }}</div>
+  {% endif %} {% if user.location %}
+  <div style="color: #71767b; margin-bottom: 8px">
+    <svg
+      style="
+        width: 16px;
+        height: 16px;
+        fill: currentColor;
+        vertical-align: middle;
+      "
+      viewBox="0 0 24 24">
+      <path
+        d="M12 14.315c-2.088 0-3.787-1.698-3.787-3.786S9.913 6.74 12 6.74s3.787 1.7 3.787 3.787-1.7 3.785-3.787 3.785zm0-6.073c-1.26 0-2.287 1.026-2.287 2.287S10.74 12.814 12 12.814s2.287-1.025 2.287-2.286S13.26 8.24 12 8.24z" />
+      <path
+        d="M20.692 10.69C20.692 5.9 16.792 2 12 2s-8.692 3.9-8.692 8.69c0 1.902.603 3.708 1.743 5.223l.003-.002.007.015c1.628 2.07 6.278 5.757 6.475 5.912.138.11.302.163.465.163.163 0 .327-.053.465-.162.197-.155 4.847-3.84 6.475-5.912l.007-.014.002.002c1.14-1.516 1.742-3.32 1.742-5.223zM12 20.29c-1.224-.99-4.52-3.715-5.756-5.285-.94-1.25-1.436-2.742-1.436-4.312C4.808 6.727 8.035 3.5 12 3.5s7.192 3.226 7.192 7.19c0 1.57-.497 3.062-1.436 4.313-1.236 1.57-4.532 4.294-5.756 5.285z" />
+    </svg>
+    {{ user.location }}
+  </div>
+  {% endif %} {% if user.url %}
+  <div style="color: #71767b; margin-bottom: 8px">
+    <svg
+      style="
+        width: 16px;
+        height: 16px;
+        fill: currentColor;
+        vertical-align: middle;
+      "
+      viewBox="0 0 24 24">
+      <path
+        d="M11.96 14.945c-.067 0-.136-.01-.203-.027-1.13-.318-2.097-.986-2.795-1.932-.832-1.125-1.176-2.508-.968-3.893s.942-2.605 2.068-3.438l3.53-2.608c2.322-1.716 5.61-1.224 7.33 1.1.83 1.127 1.175 2.51.967 3.895s-.943 2.605-2.07 3.438l-1.48 1.094c-.333.246-.804.175-1.05-.158-.246-.334-.176-.804.158-1.05l1.48-1.095c.803-.592 1.327-1.463 1.476-2.45.148-.988-.098-1.975-.69-2.778-1.225-1.656-3.572-2.01-5.23-.784l-3.53 2.608c-.802.593-1.326 1.464-1.475 2.45-.15.99.097 1.975.69 2.778.498.675 1.187 1.15 1.992 1.377.4.114.633.528.52.928-.092.33-.394.547-.722.547z" />
+      <path
+        d="M7.27 22.054c-1.61 0-3.197-.735-4.194-2.086-.83-1.127-1.175-2.51-.967-3.895s.943-2.605 2.07-3.438l1.48-1.094c.334-.246.805-.175 1.05.158s.177.804-.157 1.05l-1.48 1.095c-.803.592-1.327 1.463-1.476 2.45-.148.988.098 1.975.69 2.778 1.225 1.657 3.57 2.01 5.23.785l3.528-2.608c1.658-1.225 2.01-3.57.785-5.23-.498-.674-1.187-1.15-1.992-1.376-.4-.113-.633-.527-.52-.927.112-.4.528-.63.926-.522 1.13.318 2.096.986 2.794 1.932 1.717 2.324 1.224 5.612-1.1 7.33l-3.53 2.608c-.933.693-2.023 1.026-3.105 1.026z" />
+    </svg>
+    <a href="{{ user.url }}" target="_blank" style="color: #1d9bf0"
+      >{{ user.url }}</a
+    >
+  </div>
+  {% endif %}
+
+  <div style="color: #71767b; margin-bottom: 12px">
+    <svg
+      style="
+        width: 16px;
+        height: 16px;
+        fill: currentColor;
+        vertical-align: middle;
+      "
+      viewBox="0 0 24 24">
+      <path
+        d="M7 4V3h2v1h6V3h2v1h1.5C19.89 4 21 5.12 21 6.5v12c0 1.38-1.11 2.5-2.5 2.5h-13C4.12 21 3 19.88 3 18.5v-12C3 5.12 4.12 4 5.5 4H7zm0 2H5.5c-.27 0-.5.22-.5.5v12c0 .28.23.5.5.5h13c.28 0 .5-.22.5-.5v-12c0-.28-.22-.5-.5-.5H17v1h-2V6H9v1H7V6zm0 6h2v-2H7v2zm0 4h2v-2H7v2zm4-4h2v-2h-2v2zm0 4h2v-2h-2v2zm4-4h2v-2h-2v2z" />
+    </svg>
+    加入于 {{ user.date }}
+  </div>
+
+  <div class="profile-stats">
+    <div class="profile-stat">
+      <strong>{{ user.statuses_count|format_number }}</strong> 推文
+    </div>
+    <div class="profile-stat">
+      <strong>{{ user.followers_count|format_number }}</strong> 关注者
+    </div>
+    <div class="profile-stat">
+      <strong>{{ user.friends_count|format_number }}</strong> 正在关注
+    </div>
+  </div>
+</div>
+
+<div class="nav">
+  <a href="#" class="active">推文</a>
+  <a href="#">媒体</a>
+  <a href="#">喜欢</a>
+</div>
+
+<div class="tweets-container">
+  {% for tweet in tweets %}
+  <div class="tweet" data-tweet-id="{{ tweet.tweet_id }}">
+    <div class="tweet-header">
+      <img
+        class="avatar"
+        src="{{ tweet.author_avatar if tweet.author_avatar else tweet.user_avatar }}"
+        onerror="this.src='data:image/svg+xml,%3Csvg xmlns=\'http://www.w3.org/2000/svg\' width=\'48\' height=\'48\' viewBox=\'0 0 48 48\'%3E%3Ccircle cx=\'24\' cy=\'24\' r=\'24\' fill=\'%23657786\'/%3E%3C/svg%3E'"
+        alt="Avatar" />
+      <div class="tweet-info">
+        <div class="tweet-author">
+          <span class="name"
+            >{{ tweet.author_name if tweet.author_name else tweet.user_name
+            }}</span
+          >
+          <span class="username"
+            >@{{ tweet.author_nick if tweet.author_nick else tweet.user_nick
+            }}</span
+          >
+          <span class="date">· {{ tweet.date|format_date }}</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="tweet-content">
+      {{ tweet.content|safe }} {% if tweet.hashtags %} {% for tag in
+      tweet.hashtags %}
+      <a href="/search?q=%23{{ tag }}" class="hashtag">#{{ tag }}</a>
+      {% endfor %} {% endif %}
+    </div>
+
+    {% if tweet.media_files %}
+    <div
+      class="tweet-media {% if tweet.media_files|length == 1 %}single{% elif tweet.media_files|length == 2 %}double{% elif tweet.media_files|length == 3 %}triple{% else %}quad{% endif %}">
+      {% for media in tweet.media_files[:4] %}
+      <div class="media-item">
+        {% if media.endswith('.mp4') or media.endswith('.mov') or
+        media.endswith('.avi') %}
+        <video controls>
+          <source src="/{{ media }}" type="video/mp4" />
+        </video>
+        {% else %}
+        <img data-src="/{{ media }}" alt="Media" loading="lazy" />
+        {% endif %}
+      </div>
+      {% endfor %}
+    </div>
+    {% endif %}
+
+    <div class="tweet-stats">
+      <div class="stat">
+        <svg class="stat-icon" viewBox="0 0 24 24">
+          <path
+            d="M14.046 2.242l-4.148-.01h-.002c-4.374 0-7.8 3.427-7.8 7.802 0 4.098 3.186 7.206 7.465 7.37v3.828c0 .108.044.286.12.403.142.225.384.347.632.347.138 0 .277-.038.402-.118.264-.168 6.473-4.14 8.088-5.506 1.902-1.61 3.04-3.97 3.043-6.312v-.017c-.006-4.367-3.43-7.787-7.8-7.788zm3.787 12.972c-1.134.96-4.862 3.405-6.772 4.643V16.67c0-.414-.335-.75-.75-.75h-.396c-3.66 0-6.318-2.476-6.318-5.886 0-3.534 2.768-6.302 6.3-6.302l4.147.01h.002c3.532 0 6.3 2.766 6.302 6.296-.003 1.91-.942 3.844-2.514 5.176z" />
+        </svg>
+        <span>{{ tweet.reply_count|format_number }}</span>
+      </div>
+      <div class="stat">
+        <svg class="stat-icon" viewBox="0 0 24 24">
+          <path
+            d="M23.77 15.67c-.292-.293-.767-.293-1.06 0l-2.22 2.22V7.65c0-2.068-1.683-3.75-3.75-3.75h-5.85c-.414 0-.75.336-.75.75s.336.75.75.75h5.85c1.24 0 2.25 1.01 2.25 2.25v10.24l-2.22-2.22c-.293-.293-.768-.293-1.06 0s-.294.768 0 1.06l3.5 3.5c.145.147.337.22.53.22s.383-.072.53-.22l3.5-3.5c.294-.292.294-.767 0-1.06zm-10.66 3.28H7.26c-1.24 0-2.25-1.01-2.25-2.25V6.46l2.22 2.22c.148.147.34.22.532.22s.384-.073.53-.22c.293-.293.293-.768 0-1.06l-3.5-3.5c-.293-.294-.768-.294-1.06 0l-3.5 3.5c-.294.292-.294.767 0 1.06s.767.293 1.06 0l2.22-2.22V16.7c0 2.068 1.683 3.75 3.75 3.75h5.85c.414 0 .75-.336.75-.75s-.337-.75-.75-.75z" />
+        </svg>
+        <span>{{ tweet.retweet_count|format_number }}</span>
+      </div>
+      <div class="stat">
+        <svg class="stat-icon" viewBox="0 0 24 24">
+          <path
+            d="M12 21.638h-.014C9.403 21.59 1.95 14.856 1.95 8.478c0-3.064 2.525-5.754 5.403-5.754 2.29 0 3.83 1.58 4.646 2.73.814-1.148 2.354-2.73 4.645-2.73 2.88 0 5.404 2.69 5.404 5.755 0 6.376-7.454 13.11-10.037 13.157H12zM7.354 4.225c-2.08 0-3.903 1.988-3.903 4.255 0 5.74 7.034 11.596 8.55 11.658 1.518-.062 8.55-5.917 8.55-11.658 0-2.267-1.823-4.255-3.903-4.255-2.528 0-3.94 2.936-3.952 2.965-.23.562-1.156.562-1.387 0-.014-.03-1.425-2.965-3.954-2.965z" />
+        </svg>
+        <span>{{ tweet.favorite_count|format_number }}</span>
+      </div>
+    </div>
+  </div>
+  {% endfor %}
+</div>
+
+{% if tweets|length == 0 %}
+<div class="empty">
+  <p>该用户暂无推文</p>
+</div>
+{% endif %} {% endblock %}
