@@ -183,13 +183,13 @@ def process_tweet_data(tweet_dict):
 
         return re.sub(space_link_pattern, replace_space_link, content)
 
-    # 处理推文内容中的YouTube链接
-    def process_youtube_links(content):
+    # 处理推文内容中的链接
+    def process_links(content):
         if not content:
             return content
 
-        # 使用一个更精确的正则表达式来匹配所有YouTube链接格式
-        youtube_pattern = r'(https?://(?:www\.)?(?:youtube\.com/(?:watch\?v=|embed/|v/)|youtu\.be/)([a-zA-Z0-9_-]+)(?:\?[^"\s]*)?)'
+        # 使用一个更精确的正则表达式来匹配所有YouTube链接格式（包括直播）
+        youtube_pattern = r'(https?://(?:www\.)?(?:youtube\.com/(?:watch\?v=|embed/|v/|live/)|youtu\.be/)([a-zA-Z0-9_-]+)(?:\?[^"\s]*)?)'
 
         def replace_youtube_link(match):
             full_url = match.group(1)
@@ -201,19 +201,36 @@ def process_tweet_data(tweet_dict):
         # 替换所有YouTube链接
         content = re.sub(youtube_pattern, replace_youtube_link, content)
 
+        # 处理t.co链接 - 替换为"查看链接"
+        tco_pattern = r"(https?://t\.co/[a-zA-Z0-9]+)"
+
+        def replace_tco_link(match):
+            return '<span class="tco-link">查看链接</span>'
+
+        content = re.sub(tco_pattern, replace_tco_link, content)
+
+        # 处理其他普通链接 - 高亮显示（排除已处理的YouTube、t.co和Space链接）
+        general_link_pattern = r'(https?://(?!t\.co|(?:www\.)?(?:youtube\.com|youtu\.be)|(?:x|twitter)\.com/i/spaces)[^\s<>"]+)'
+
+        def replace_general_link(match):
+            url = match.group(1)
+            return f'<a href="{url}" target="_blank" class="general-link">{url}</a>'
+
+        content = re.sub(general_link_pattern, replace_general_link, content)
+
         return content
 
     # 处理主推文内容
     if tweet_dict.get("content"):
         tweet_dict["content"] = process_space_links(tweet_dict["content"])
-        tweet_dict["content"] = process_youtube_links(tweet_dict["content"])
+        tweet_dict["content"] = process_links(tweet_dict["content"])
 
     # 处理回复推文内容
     if tweet_dict.get("reply_info") and tweet_dict["reply_info"].get("content"):
         tweet_dict["reply_info"]["content"] = process_space_links(
             tweet_dict["reply_info"]["content"]
         )
-        tweet_dict["reply_info"]["content"] = process_youtube_links(
+        tweet_dict["reply_info"]["content"] = process_links(
             tweet_dict["reply_info"]["content"]
         )
 
@@ -222,7 +239,7 @@ def process_tweet_data(tweet_dict):
         tweet_dict["quote_info"]["content"] = process_space_links(
             tweet_dict["quote_info"]["content"]
         )
-        tweet_dict["quote_info"]["content"] = process_youtube_links(
+        tweet_dict["quote_info"]["content"] = process_links(
             tweet_dict["quote_info"]["content"]
         )
 
