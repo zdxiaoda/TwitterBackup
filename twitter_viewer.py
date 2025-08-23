@@ -12,6 +12,7 @@ import json
 from pathlib import Path
 from datetime import datetime
 import os
+import re
 from urllib.parse import urlparse
 
 app = Flask(__name__)
@@ -169,6 +170,19 @@ def process_tweet_data(tweet_dict):
                 processed_media_files.append(f"img/{clean_path}")
         tweet_dict["media_files"] = processed_media_files
 
+    # 处理推文内容中的Space链接
+    if tweet_dict.get("content"):
+        content = tweet_dict["content"]
+        # 查找Space链接
+        space_link_pattern = r"(https?://(?:x|twitter)\.com/i/spaces/[a-zA-Z0-9_-]+)"
+
+        def replace_space_link(match):
+            url = match.group(0)
+            return f'<a href="{url}" target="_blank" class="space-link"><i class="fas fa-microphone-alt"></i> Space</a>'
+
+        content = re.sub(space_link_pattern, replace_space_link, content)
+        tweet_dict["content"] = content
+
     return tweet_dict
 
 
@@ -235,10 +249,32 @@ def index():
             a.profile_image as author_avatar,
             u.name as user_name,
             u.nick as user_nick,
-            u.profile_image as user_avatar
+            u.profile_image as user_avatar,
+            -- 相关推文信息
+            rt.content as retweet_content,
+            rt.author_id as retweet_author_id,
+            rt.user_id as retweet_user_id,
+            qt.content as quote_content,
+            qt.author_id as quote_author_id,
+            qt.user_id as quote_user_id,
+            rp.content as reply_content,
+            rp.author_id as reply_author_id,
+            rp.user_id as reply_user_id,
+            rpa.name as reply_author_name,
+            rpa.nick as reply_author_nick,
+            rpu.name as reply_user_name,
+            rpu.nick as reply_user_nick
         FROM tweets t
         LEFT JOIN users a ON t.author_id = a.user_id
         LEFT JOIN users u ON t.user_id = u.user_id
+        -- 关联转发推文
+        LEFT JOIN tweets rt ON t.retweet_id = rt.tweet_id
+        -- 关联引用推文
+        LEFT JOIN tweets qt ON t.quote_id = qt.tweet_id
+        -- 关联回复推文
+        LEFT JOIN tweets rp ON t.reply_id = rp.tweet_id
+        LEFT JOIN users rpa ON rp.author_id = rpa.user_id
+        LEFT JOIN users rpu ON rp.user_id = rpu.user_id
         ORDER BY t.date DESC
         LIMIT ? OFFSET ?
     """,
@@ -261,14 +297,32 @@ def index():
         else:
             tweet["hashtags"] = []
 
-        # 判断是否为转发
-        tweet["is_retweet"] = (
-            (tweet["author_id"] != tweet["user_id"])
-            if tweet["author_id"] and tweet["user_id"]
-            else False
-        )
+        # 判断推文类型
+        tweet["is_retweet"] = tweet["retweet_id"] > 0
+        tweet["is_quote"] = tweet["quote_id"] > 0
+        tweet["is_reply"] = tweet["reply_id"] > 0
 
-        tweets.append(tweet)
+        # 处理相关推文信息
+        if tweet["is_retweet"] and tweet.get("retweet_content"):
+            tweet["retweet_info"] = {
+                "content": tweet["retweet_content"],
+                "author_id": tweet["retweet_author_id"],
+                "user_id": tweet["retweet_user_id"],
+            }
+
+        if tweet["is_quote"] and tweet.get("quote_content"):
+            tweet["quote_info"] = {
+                "content": tweet["quote_content"],
+                "author_id": tweet["quote_author_id"],
+                "user_id": tweet["quote_user_id"],
+            }
+
+        if tweet["is_reply"] and tweet.get("reply_content"):
+            tweet["reply_info"] = {
+                "content": tweet["reply_content"],
+                "author_id": tweet["reply_author_id"],
+                "user_id": tweet["reply_user_id"],
+            }
 
         # 转换头像URL为本地路径
         tweet = process_tweet_data(tweet)
@@ -301,6 +355,9 @@ def index():
 @app.route("/user/<int:user_id>")
 def user_profile(user_id):
     """用户个人主页"""
+    page = request.args.get("page", 1, type=int)
+    per_page = 20
+
     conn = get_db_connection()
     cursor = conn.cursor()
 
@@ -313,7 +370,26 @@ def user_profile(user_id):
 
     user = dict(user)
 
-    # 获取用户的推文
+    # 转换用户头像和横幅URL为本地路径
+    if user.get("profile_image"):
+        user["profile_image"] = convert_avatar_url_to_local(
+            user.get("user_id"), user["profile_image"]
+        )
+
+    if user.get("profile_banner"):
+        user["profile_banner"] = convert_banner_url_to_local(
+            user.get("user_id"), user["profile_banner"]
+        )
+
+    # 获取用户推文总数
+    cursor.execute(
+        "SELECT COUNT(*) FROM tweets WHERE user_id = ? OR author_id = ?",
+        (user_id, user_id),
+    )
+    total_tweets = cursor.fetchone()[0]
+
+    # 获取用户的推文（分页）
+    offset = (page - 1) * per_page
     cursor.execute(
         """
         SELECT 
@@ -323,15 +399,31 @@ def user_profile(user_id):
             a.profile_image as author_avatar,
             u.name as user_name,
             u.nick as user_nick,
-            u.profile_image as user_avatar
+            u.profile_image as user_avatar,
+            -- 相关推文信息
+            rt.content as retweet_content,
+            rt.author_id as retweet_author_id,
+            rt.user_id as retweet_user_id,
+            qt.content as quote_content,
+            qt.author_id as quote_author_id,
+            qt.user_id as quote_user_id,
+            rp.content as reply_content,
+            rp.author_id as reply_author_id,
+            rp.user_id as reply_user_id
         FROM tweets t
         LEFT JOIN users a ON t.author_id = a.user_id
         LEFT JOIN users u ON t.user_id = u.user_id
+        -- 关联转发推文
+        LEFT JOIN tweets rt ON t.retweet_id = rt.tweet_id
+        -- 关联引用推文
+        LEFT JOIN tweets qt ON t.quote_id = qt.tweet_id
+        -- 关联回复推文
+        LEFT JOIN tweets rp ON t.reply_id = rp.tweet_id
         WHERE t.user_id = ? OR t.author_id = ?
         ORDER BY t.date DESC
-        LIMIT 50
+        LIMIT ? OFFSET ?
     """,
-        (user_id, user_id),
+        (user_id, user_id, per_page, offset),
     )
 
     tweets = []
@@ -350,14 +442,32 @@ def user_profile(user_id):
         else:
             tweet["hashtags"] = []
 
-        # 判断是否为转发
-        tweet["is_retweet"] = (
-            (tweet["author_id"] != tweet["user_id"])
-            if tweet["author_id"] and tweet["user_id"]
-            else False
-        )
+        # 判断推文类型
+        tweet["is_retweet"] = tweet["retweet_id"] > 0
+        tweet["is_quote"] = tweet["quote_id"] > 0
+        tweet["is_reply"] = tweet["reply_id"] > 0
 
-        tweets.append(tweet)
+        # 处理相关推文信息
+        if tweet["is_retweet"] and tweet.get("retweet_content"):
+            tweet["retweet_info"] = {
+                "content": tweet["retweet_content"],
+                "author_id": tweet["retweet_author_id"],
+                "user_id": tweet["retweet_user_id"],
+            }
+
+        if tweet["is_quote"] and tweet.get("quote_content"):
+            tweet["quote_info"] = {
+                "content": tweet["quote_content"],
+                "author_id": tweet["quote_author_id"],
+                "user_id": tweet["quote_user_id"],
+            }
+
+        if tweet["is_reply"] and tweet.get("reply_content"):
+            tweet["reply_info"] = {
+                "content": tweet["reply_content"],
+                "author_id": tweet["reply_author_id"],
+                "user_id": tweet["reply_user_id"],
+            }
 
         # 转换头像URL为本地路径
         tweet = process_tweet_data(tweet)
@@ -366,7 +476,17 @@ def user_profile(user_id):
 
     conn.close()
 
-    return render_template("profile.html", user=user, tweets=tweets)
+    # 计算分页信息
+    total_pages = (total_tweets + per_page - 1) // per_page
+
+    return render_template(
+        "profile.html",
+        user=user,
+        tweets=tweets,
+        page=page,
+        total_pages=total_pages,
+        total_tweets=total_tweets,
+    )
 
 
 @app.route("/tweet/<int:tweet_id>")
@@ -387,10 +507,26 @@ def tweet_detail(tweet_id):
             u.name as user_name,
             u.nick as user_nick,
             u.profile_image as user_avatar,
-            u.profile_banner as user_banner
+            u.profile_banner as user_banner,
+            -- 相关推文信息
+            rt.content as retweet_content,
+            rt.author_id as retweet_author_id,
+            rt.user_id as retweet_user_id,
+            qt.content as quote_content,
+            qt.author_id as quote_author_id,
+            qt.user_id as quote_user_id,
+            rp.content as reply_content,
+            rp.author_id as reply_author_id,
+            rp.user_id as reply_user_id
         FROM tweets t
         LEFT JOIN users a ON t.author_id = a.user_id
         LEFT JOIN users u ON t.user_id = u.user_id
+        -- 关联转发推文
+        LEFT JOIN tweets rt ON t.retweet_id = rt.tweet_id
+        -- 关联引用推文
+        LEFT JOIN tweets qt ON t.quote_id = qt.tweet_id
+        -- 关联回复推文
+        LEFT JOIN tweets rp ON t.reply_id = rp.tweet_id
         WHERE t.tweet_id = ?
     """,
         (tweet_id,),
@@ -415,12 +551,32 @@ def tweet_detail(tweet_id):
     else:
         tweet["hashtags"] = []
 
-    # 判断是否为转发
-    tweet["is_retweet"] = (
-        (tweet["author_id"] != tweet["user_id"])
-        if tweet["author_id"] and tweet["user_id"]
-        else False
-    )
+    # 判断推文类型
+    tweet["is_retweet"] = tweet["retweet_id"] > 0
+    tweet["is_quote"] = tweet["quote_id"] > 0
+    tweet["is_reply"] = tweet["reply_id"] > 0
+
+    # 处理相关推文信息
+    if tweet["is_retweet"] and tweet.get("retweet_content"):
+        tweet["retweet_info"] = {
+            "content": tweet["retweet_content"],
+            "author_id": tweet["retweet_author_id"],
+            "user_id": tweet["retweet_user_id"],
+        }
+
+    if tweet["is_quote"] and tweet.get("quote_content"):
+        tweet["quote_info"] = {
+            "content": tweet["quote_content"],
+            "author_id": tweet["quote_author_id"],
+            "user_id": tweet["quote_user_id"],
+        }
+
+    if tweet["is_reply"] and tweet.get("reply_content"):
+        tweet["reply_info"] = {
+            "content": tweet["reply_content"],
+            "author_id": tweet["reply_author_id"],
+            "user_id": tweet["reply_user_id"],
+        }
 
     # 转换头像URL为本地路径
     tweet = process_tweet_data(tweet)
@@ -486,10 +642,26 @@ def search():
             a.profile_image as author_avatar,
             u.name as user_name,
             u.nick as user_nick,
-            u.profile_image as user_avatar
+            u.profile_image as user_avatar,
+            -- 相关推文信息
+            rt.content as retweet_content,
+            rt.author_id as retweet_author_id,
+            rt.user_id as retweet_user_id,
+            qt.content as quote_content,
+            qt.author_id as quote_author_id,
+            qt.user_id as quote_user_id,
+            rp.content as reply_content,
+            rp.author_id as reply_author_id,
+            rp.user_id as reply_user_id
         FROM tweets t
         LEFT JOIN users a ON t.author_id = a.user_id
         LEFT JOIN users u ON t.user_id = u.user_id
+        -- 关联转发推文
+        LEFT JOIN tweets rt ON t.retweet_id = rt.tweet_id
+        -- 关联引用推文
+        LEFT JOIN tweets qt ON t.quote_id = qt.tweet_id
+        -- 关联回复推文
+        LEFT JOIN tweets rp ON t.reply_id = rp.tweet_id
         WHERE t.content LIKE ?
         ORDER BY t.date DESC
         LIMIT 50
@@ -513,12 +685,32 @@ def search():
         else:
             tweet["hashtags"] = []
 
-        # 判断是否为转发
-        tweet["is_retweet"] = (
-            (tweet["author_id"] != tweet["user_id"])
-            if tweet["author_id"] and tweet["user_id"]
-            else False
-        )
+        # 判断推文类型
+        tweet["is_retweet"] = tweet["retweet_id"] > 0
+        tweet["is_quote"] = tweet["quote_id"] > 0
+        tweet["is_reply"] = tweet["reply_id"] > 0
+
+        # 处理相关推文信息
+        if tweet["is_retweet"] and tweet.get("retweet_content"):
+            tweet["retweet_info"] = {
+                "content": tweet["retweet_content"],
+                "author_id": tweet["retweet_author_id"],
+                "user_id": tweet["retweet_user_id"],
+            }
+
+        if tweet["is_quote"] and tweet.get("quote_content"):
+            tweet["quote_info"] = {
+                "content": tweet["quote_content"],
+                "author_id": tweet["quote_author_id"],
+                "user_id": tweet["quote_user_id"],
+            }
+
+        if tweet["is_reply"] and tweet.get("reply_content"):
+            tweet["reply_info"] = {
+                "content": tweet["reply_content"],
+                "author_id": tweet["reply_author_id"],
+                "user_id": tweet["reply_user_id"],
+            }
 
         # 转换头像URL为本地路径
         tweet = process_tweet_data(tweet)

@@ -118,6 +118,38 @@ Twitter 备份查看器{% endblock %} {% block content %}
       </div>
     </div>
 
+    {% if tweet.is_reply %}
+    <div class="tweet-relation reply">
+      <span class="relation-text">回复</span>
+      {% if tweet.reply_info %}
+      <a href="/tweet/{{ tweet.reply_id }}" class="relation-link">
+        @{{ tweet.reply_info.author_id }}: {{ tweet.reply_info.content[:50] }}{%
+        if tweet.reply_info.content|length > 50 %}...{% endif %}
+      </a>
+      {% endif %}
+    </div>
+    {% endif %} {% if tweet.is_quote %}
+    <div class="tweet-relation quote">
+      <span class="relation-text">引用</span>
+      {% if tweet.quote_info %}
+      <a href="/tweet/{{ tweet.quote_id }}" class="relation-link">
+        @{{ tweet.quote_info.author_id }}: {{ tweet.quote_info.content[:50] }}{%
+        if tweet.quote_info.content|length > 50 %}...{% endif %}
+      </a>
+      {% endif %}
+    </div>
+    {% endif %} {% if tweet.is_retweet %}
+    <div class="tweet-relation retweet">
+      <span class="relation-text">转发</span>
+      {% if tweet.retweet_info %}
+      <a href="/tweet/{{ tweet.retweet_id }}" class="relation-link">
+        @{{ tweet.retweet_info.author_id }}: {{ tweet.retweet_info.content[:50]
+        }}{% if tweet.retweet_info.content|length > 50 %}...{% endif %}
+      </a>
+      {% endif %}
+    </div>
+    {% endif %}
+
     <div class="tweet-content">
       {{ tweet.content|safe }} {% if tweet.hashtags %} {% for tag in
       tweet.hashtags %}
@@ -170,7 +202,20 @@ Twitter 备份查看器{% endblock %} {% block content %}
   {% endfor %}
 </div>
 
-{% if tweets|length == 0 %}
+{% if total_pages > 1 %}
+<div class="pagination">
+  {% if page > 1 %}
+  <a href="/user/{{ user.user_id }}?page={{ page - 1 }}">上一页</a>
+  {% endif %} {% for p in range(1, total_pages + 1) %} {% if p <= 10 %} {% if p
+  == page %}
+  <a class="current">{{ p }}</a>
+  {% else %}
+  <a href="/user/{{ user.user_id }}?page={{ p }}">{{ p }}</a>
+  {% endif %} {% endif %} {% endfor %} {% if page < total_pages %}
+  <a href="/user/{{ user.user_id }}?page={{ page + 1 }}">下一页</a>
+  {% endif %}
+</div>
+{% endif %} {% if tweets|length == 0 %}
 <div class="empty">
   <p>该用户暂无推文</p>
 </div>

@@ -1,11 +1,21 @@
 {% extends "base.html" %} {% block title %}首页 - Twitter 备份查看器{% endblock
 %} {% block content %}
 <div class="header">
-  <h1>首页</h1>
-  <div style="color: #71767b; font-size: 14px; margin-top: 4px">
-    共 {{ total_tweets }} 条推文 · {{ total_users }} 位用户 · {{ total_media }}
-    个媒体文件
+  <div>
+    <h1>首页</h1>
+    <div
+      style="
+        color: var(--secondary-text-color);
+        font-size: 14px;
+        margin-top: 4px;
+      ">
+      共 {{ total_tweets }} 条推文 · {{ total_users }} 位用户 · {{ total_media
+      }} 个媒体文件
+    </div>
   </div>
+  <button class="theme-toggle" id="theme-toggle">
+    <i class="fas fa-moon"></i>
+  </button>
 </div>
 
 <div class="nav">
@@ -47,6 +57,39 @@
         </div>
       </div>
     </div>
+
+    {% if tweet.is_reply %}
+    <div class="tweet-relation reply">
+      <span class="relation-text">回复</span>
+      {% if tweet.reply_info %}
+      <a href="/tweet/{{ tweet.reply_id }}" class="relation-link">
+        @{{ tweet.reply_info.author_name or tweet.reply_info.author_nick or
+        tweet.reply_info.author_id }}: {{ tweet.reply_info.content[:50] }}{% if
+        tweet.reply_info.content|length > 50 %}...{% endif %}
+      </a>
+      {% endif %}
+    </div>
+    {% endif %} {% if tweet.is_quote %}
+    <div class="tweet-relation quote">
+      <span class="relation-text">引用</span>
+      {% if tweet.quote_info %}
+      <a href="/tweet/{{ tweet.quote_id }}" class="relation-link">
+        @{{ tweet.quote_info.author_id }}: {{ tweet.quote_info.content[:50] }}{%
+        if tweet.quote_info.content|length > 50 %}...{% endif %}
+      </a>
+      {% endif %}
+    </div>
+    {% endif %} {% if tweet.is_retweet %}
+    <div class="tweet-relation retweet">
+      <span class="relation-text">转发</span>
+      {% if tweet.retweet_info %}
+      <a href="/tweet/{{ tweet.retweet_id }}" class="relation-link">
+        @{{ tweet.retweet_info.author_id }}: {{ tweet.retweet_info.content[:50]
+        }}{% if tweet.retweet_info.content|length > 50 %}...{% endif %}
+      </a>
+      {% endif %}
+    </div>
+    {% endif %}
 
     <div class="tweet-content">
       {{ tweet.content|safe }} {% if tweet.hashtags %} {% for tag in
