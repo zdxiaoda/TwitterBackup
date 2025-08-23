@@ -31,11 +31,11 @@ endblock %} {% block content %}
       <div class="tweet-info">
         <div class="tweet-author">
           <span class="name"
-            >{{ tweet.author_name if tweet.is_retweet else tweet.user_name
+            >{{ tweet.author_nick if tweet.is_retweet else tweet.user_nick
             }}</span
           >
           <span class="username"
-            >@{{ tweet.author_nick if tweet.is_retweet else tweet.user_nick
+            >@{{ tweet.author_name if tweet.is_retweet else tweet.user_name
             }}</span
           >
           <span class="date">· {{ tweet.date|format_date }}</span>
@@ -48,8 +48,9 @@ endblock %} {% block content %}
       <span class="relation-text">回复</span>
       {% if tweet.reply_info %}
       <a href="/tweet/{{ tweet.reply_id }}" class="relation-link">
-        @{{ tweet.reply_info.author_id }}: {{ tweet.reply_info.content[:50] }}{%
-        if tweet.reply_info.content|length > 50 %}...{% endif %}
+        @{{ tweet.reply_info.author_nick or tweet.reply_info.author_name or
+        tweet.reply_info.author_id }}: {{ tweet.reply_info.content[:50] }}{% if
+        tweet.reply_info.content|length > 50 %}...{% endif %}
       </a>
       {% endif %}
     </div>
@@ -58,8 +59,9 @@ endblock %} {% block content %}
       <span class="relation-text">引用</span>
       {% if tweet.quote_info %}
       <a href="/tweet/{{ tweet.quote_id }}" class="relation-link">
-        @{{ tweet.quote_info.author_id }}: {{ tweet.quote_info.content[:50] }}{%
-        if tweet.quote_info.content|length > 50 %}...{% endif %}
+        @{{ tweet.quote_info.author_nick or tweet.quote_info.author_name or
+        tweet.quote_info.author_id }}: {{ tweet.quote_info.content[:50] }}{% if
+        tweet.quote_info.content|length > 50 %}...{% endif %}
       </a>
       {% endif %}
     </div>
@@ -68,8 +70,9 @@ endblock %} {% block content %}
       <span class="relation-text">转发</span>
       {% if tweet.retweet_info %}
       <a href="/tweet/{{ tweet.retweet_id }}" class="relation-link">
-        @{{ tweet.retweet_info.author_id }}: {{ tweet.retweet_info.content[:50]
-        }}{% if tweet.retweet_info.content|length > 50 %}...{% endif %}
+        @{{ tweet.retweet_info.author_nick or tweet.retweet_info.author_name or
+        tweet.retweet_info.author_id }}: {{ tweet.retweet_info.content[:50] }}{%
+        if tweet.retweet_info.content|length > 50 %}...{% endif %}
       </a>
       {% endif %}
     </div>
@@ -149,11 +152,11 @@ endblock %} {% block content %}
       <div class="tweet-info">
         <div class="tweet-author">
           <span class="name"
-            >{{ tweet.author_name if tweet.author_name else tweet.user_name
+            >{{ tweet.author_nick if tweet.author_nick else tweet.user_nick
             }}</span
           >
           <span class="username"
-            >@{{ tweet.author_nick if tweet.author_nick else tweet.user_nick
+            >@{{ tweet.author_name if tweet.author_name else tweet.user_name
             }}</span
           >
           <span class="date">· {{ tweet.date|format_date }}</span>

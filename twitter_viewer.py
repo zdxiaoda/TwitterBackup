@@ -254,9 +254,13 @@ def index():
             rt.content as retweet_content,
             rt.author_id as retweet_author_id,
             rt.user_id as retweet_user_id,
+            rta.name as retweet_author_name,
+            rta.nick as retweet_author_nick,
             qt.content as quote_content,
             qt.author_id as quote_author_id,
             qt.user_id as quote_user_id,
+            qta.name as quote_author_name,
+            qta.nick as quote_author_nick,
             rp.content as reply_content,
             rp.author_id as reply_author_id,
             rp.user_id as reply_user_id,
@@ -269,8 +273,10 @@ def index():
         LEFT JOIN users u ON t.user_id = u.user_id
         -- 关联转发推文
         LEFT JOIN tweets rt ON t.retweet_id = rt.tweet_id
+        LEFT JOIN users rta ON rt.author_id = rta.user_id
         -- 关联引用推文
         LEFT JOIN tweets qt ON t.quote_id = qt.tweet_id
+        LEFT JOIN users qta ON qt.author_id = qta.user_id
         -- 关联回复推文
         LEFT JOIN tweets rp ON t.reply_id = rp.tweet_id
         LEFT JOIN users rpa ON rp.author_id = rpa.user_id
@@ -308,6 +314,8 @@ def index():
                 "content": tweet["retweet_content"],
                 "author_id": tweet["retweet_author_id"],
                 "user_id": tweet["retweet_user_id"],
+                "author_name": tweet.get("retweet_author_name"),
+                "author_nick": tweet.get("retweet_author_nick"),
             }
 
         if tweet["is_quote"] and tweet.get("quote_content"):
@@ -315,6 +323,8 @@ def index():
                 "content": tweet["quote_content"],
                 "author_id": tweet["quote_author_id"],
                 "user_id": tweet["quote_user_id"],
+                "author_name": tweet.get("quote_author_name"),
+                "author_nick": tweet.get("quote_author_nick"),
             }
 
         if tweet["is_reply"] and tweet.get("reply_content"):
@@ -322,6 +332,8 @@ def index():
                 "content": tweet["reply_content"],
                 "author_id": tweet["reply_author_id"],
                 "user_id": tweet["reply_user_id"],
+                "author_name": tweet.get("reply_author_name"),
+                "author_nick": tweet.get("reply_author_nick"),
             }
 
         # 转换头像URL为本地路径
@@ -404,21 +416,30 @@ def user_profile(user_id):
             rt.content as retweet_content,
             rt.author_id as retweet_author_id,
             rt.user_id as retweet_user_id,
+            rta.name as retweet_author_name,
+            rta.nick as retweet_author_nick,
             qt.content as quote_content,
             qt.author_id as quote_author_id,
             qt.user_id as quote_user_id,
+            qta.name as quote_author_name,
+            qta.nick as quote_author_nick,
             rp.content as reply_content,
             rp.author_id as reply_author_id,
-            rp.user_id as reply_user_id
+            rp.user_id as reply_user_id,
+            rpa.name as reply_author_name,
+            rpa.nick as reply_author_nick
         FROM tweets t
         LEFT JOIN users a ON t.author_id = a.user_id
         LEFT JOIN users u ON t.user_id = u.user_id
         -- 关联转发推文
         LEFT JOIN tweets rt ON t.retweet_id = rt.tweet_id
+        LEFT JOIN users rta ON rt.author_id = rta.user_id
         -- 关联引用推文
         LEFT JOIN tweets qt ON t.quote_id = qt.tweet_id
+        LEFT JOIN users qta ON qt.author_id = qta.user_id
         -- 关联回复推文
         LEFT JOIN tweets rp ON t.reply_id = rp.tweet_id
+        LEFT JOIN users rpa ON rp.author_id = rpa.user_id
         WHERE t.user_id = ? OR t.author_id = ?
         ORDER BY t.date DESC
         LIMIT ? OFFSET ?
@@ -453,6 +474,8 @@ def user_profile(user_id):
                 "content": tweet["retweet_content"],
                 "author_id": tweet["retweet_author_id"],
                 "user_id": tweet["retweet_user_id"],
+                "author_name": tweet.get("retweet_author_name"),
+                "author_nick": tweet.get("retweet_author_nick"),
             }
 
         if tweet["is_quote"] and tweet.get("quote_content"):
@@ -460,6 +483,8 @@ def user_profile(user_id):
                 "content": tweet["quote_content"],
                 "author_id": tweet["quote_author_id"],
                 "user_id": tweet["quote_user_id"],
+                "author_name": tweet.get("quote_author_name"),
+                "author_nick": tweet.get("quote_author_nick"),
             }
 
         if tweet["is_reply"] and tweet.get("reply_content"):
@@ -467,6 +492,8 @@ def user_profile(user_id):
                 "content": tweet["reply_content"],
                 "author_id": tweet["reply_author_id"],
                 "user_id": tweet["reply_user_id"],
+                "author_name": tweet.get("reply_author_name"),
+                "author_nick": tweet.get("reply_author_nick"),
             }
 
         # 转换头像URL为本地路径
@@ -512,21 +539,30 @@ def tweet_detail(tweet_id):
             rt.content as retweet_content,
             rt.author_id as retweet_author_id,
             rt.user_id as retweet_user_id,
+            rta.name as retweet_author_name,
+            rta.nick as retweet_author_nick,
             qt.content as quote_content,
             qt.author_id as quote_author_id,
             qt.user_id as quote_user_id,
+            qta.name as quote_author_name,
+            qta.nick as quote_author_nick,
             rp.content as reply_content,
             rp.author_id as reply_author_id,
-            rp.user_id as reply_user_id
+            rp.user_id as reply_user_id,
+            rpa.name as reply_author_name,
+            rpa.nick as reply_author_nick
         FROM tweets t
         LEFT JOIN users a ON t.author_id = a.user_id
         LEFT JOIN users u ON t.user_id = u.user_id
         -- 关联转发推文
         LEFT JOIN tweets rt ON t.retweet_id = rt.tweet_id
+        LEFT JOIN users rta ON rt.author_id = rta.user_id
         -- 关联引用推文
         LEFT JOIN tweets qt ON t.quote_id = qt.tweet_id
+        LEFT JOIN users qta ON qt.author_id = qta.user_id
         -- 关联回复推文
         LEFT JOIN tweets rp ON t.reply_id = rp.tweet_id
+        LEFT JOIN users rpa ON rp.author_id = rpa.user_id
         WHERE t.tweet_id = ?
     """,
         (tweet_id,),
@@ -562,6 +598,8 @@ def tweet_detail(tweet_id):
             "content": tweet["retweet_content"],
             "author_id": tweet["retweet_author_id"],
             "user_id": tweet["retweet_user_id"],
+            "author_name": tweet.get("retweet_author_name"),
+            "author_nick": tweet.get("retweet_author_nick"),
         }
 
     if tweet["is_quote"] and tweet.get("quote_content"):
@@ -569,6 +607,8 @@ def tweet_detail(tweet_id):
             "content": tweet["quote_content"],
             "author_id": tweet["quote_author_id"],
             "user_id": tweet["quote_user_id"],
+            "author_name": tweet.get("quote_author_name"),
+            "author_nick": tweet.get("quote_author_nick"),
         }
 
     if tweet["is_reply"] and tweet.get("reply_content"):
@@ -576,6 +616,8 @@ def tweet_detail(tweet_id):
             "content": tweet["reply_content"],
             "author_id": tweet["reply_author_id"],
             "user_id": tweet["reply_user_id"],
+            "author_name": tweet.get("reply_author_name"),
+            "author_nick": tweet.get("reply_author_nick"),
         }
 
     # 转换头像URL为本地路径
@@ -647,21 +689,30 @@ def search():
             rt.content as retweet_content,
             rt.author_id as retweet_author_id,
             rt.user_id as retweet_user_id,
+            rta.name as retweet_author_name,
+            rta.nick as retweet_author_nick,
             qt.content as quote_content,
             qt.author_id as quote_author_id,
             qt.user_id as quote_user_id,
+            qta.name as quote_author_name,
+            qta.nick as quote_author_nick,
             rp.content as reply_content,
             rp.author_id as reply_author_id,
-            rp.user_id as reply_user_id
+            rp.user_id as reply_user_id,
+            rpa.name as reply_author_name,
+            rpa.nick as reply_author_nick
         FROM tweets t
         LEFT JOIN users a ON t.author_id = a.user_id
         LEFT JOIN users u ON t.user_id = u.user_id
         -- 关联转发推文
         LEFT JOIN tweets rt ON t.retweet_id = rt.tweet_id
+        LEFT JOIN users rta ON rt.author_id = rta.user_id
         -- 关联引用推文
         LEFT JOIN tweets qt ON t.quote_id = qt.tweet_id
+        LEFT JOIN users qta ON qt.author_id = qta.user_id
         -- 关联回复推文
         LEFT JOIN tweets rp ON t.reply_id = rp.tweet_id
+        LEFT JOIN users rpa ON rp.author_id = rpa.user_id
         WHERE t.content LIKE ?
         ORDER BY t.date DESC
         LIMIT 50
@@ -696,6 +747,8 @@ def search():
                 "content": tweet["retweet_content"],
                 "author_id": tweet["retweet_author_id"],
                 "user_id": tweet["retweet_user_id"],
+                "author_name": tweet.get("retweet_author_name"),
+                "author_nick": tweet.get("retweet_author_nick"),
             }
 
         if tweet["is_quote"] and tweet.get("quote_content"):
@@ -703,6 +756,8 @@ def search():
                 "content": tweet["quote_content"],
                 "author_id": tweet["quote_author_id"],
                 "user_id": tweet["quote_user_id"],
+                "author_name": tweet.get("quote_author_name"),
+                "author_nick": tweet.get("quote_author_nick"),
             }
 
         if tweet["is_reply"] and tweet.get("reply_content"):
@@ -710,6 +765,8 @@ def search():
                 "content": tweet["reply_content"],
                 "author_id": tweet["reply_author_id"],
                 "user_id": tweet["reply_user_id"],
+                "author_name": tweet.get("reply_author_name"),
+                "author_nick": tweet.get("reply_author_nick"),
             }
 
         # 转换头像URL为本地路径
