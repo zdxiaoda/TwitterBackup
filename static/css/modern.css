@@ -769,6 +769,7 @@ body {
   border: none;
   border-radius: var(--radius-lg);
   z-index: 1;
+  transition: opacity var(--transition), visibility var(--transition);
 }
 
 /* YouTube 占位播放样式 */
@@ -878,6 +879,15 @@ body {
     opacity: 0.7;
     transform: scale(1.1);
   }
+}
+
+/* 防止翻译的样式 */
+.no-translate {
+  /* 防止翻译 API 识别这些文本 */
+  translate: no;
+  -webkit-translate: no;
+  -moz-translate: no;
+  -ms-translate: no;
 }
 
 .tco-link,

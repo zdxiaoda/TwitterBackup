@@ -369,7 +369,31 @@
           contentElement.querySelector(".target-language");
 
         const targetLang = targetLanguageSelect.value;
-        const originalText = originalContent.textContent.trim();
+        // 获取要翻译的文本，排除带有 no-translate 类的元素
+        const originalHTML = originalContent.innerHTML;
+
+        // 创建临时元素来处理 HTML
+        const tempDiv = document.createElement("div");
+        tempDiv.innerHTML = originalHTML;
+
+        // 移除所有带有 no-translate 类的元素
+        const noTranslateElements = tempDiv.querySelectorAll(".no-translate");
+        noTranslateElements.forEach((el) => {
+          el.remove();
+        });
+
+        const originalText = tempDiv.textContent.trim();
+
+        // 调试：检查是否包含 YouTube 相关文本
+        if (
+          originalText.includes("Loading video") ||
+          originalText.includes("Please wait")
+        ) {
+          console.log(
+            "Warning: YouTube placeholder text detected in translation content:",
+            originalText
+          );
+        }
 
         const cacheKey = `${originalText}_${targetLang}`;
         if (translationCache[cacheKey]) {
@@ -592,8 +616,9 @@
           errorPlaceholder.style.display = "flex";
         }
 
-        // 隐藏 iframe
-        iframe.style.display = "none";
+        // 使用 opacity 隐藏 iframe，避免中断加载
+        iframe.style.opacity = "0";
+        iframe.style.visibility = "hidden";
       }
 
       function retryYouTubeVideo(button) {
@@ -612,18 +637,17 @@
           loadingPlaceholder.style.display = "flex";
         }
 
-        // 隐藏 iframe，显示加载占位符
-        iframe.style.display = "none";
-
         // 重新加载 iframe
         iframe.src = `https://www.youtube.com/embed/${videoId}?t=${Date.now()}`;
+        iframe.style.opacity = "0";
+        iframe.style.visibility = "hidden";
 
-        // 设置超时检测（5秒）
+        // 设置超时检测（8秒）
         setTimeout(() => {
-          if (iframe.style.display === "none") {
+          if (iframe.style.opacity === "0") {
             handleYouTubeError(iframe);
           }
-        }, 5000);
+        }, 8000);
       }
 
       // 页面加载时检查 YouTube iframe 状态
@@ -642,27 +666,51 @@
           if (loadingPlaceholder) {
             loadingPlaceholder.style.display = "flex";
           }
-          iframe.style.display = "none";
+          iframe.style.opacity = "0";
+          iframe.style.visibility = "hidden";
 
-          // 模拟加载过程（因为 iframe 的 load 事件可能不会触发）
+          // 监听 iframe 加载事件
+          iframe.addEventListener("load", function () {
+            // 加载成功，显示 iframe，隐藏加载占位符
+            iframe.style.opacity = "1";
+            iframe.style.visibility = "visible";
+            if (loadingPlaceholder) {
+              loadingPlaceholder.style.display = "none";
+            }
+          });
+
+          // 监听 iframe 错误事件
+          iframe.addEventListener("error", function () {
+            handleYouTubeError(iframe);
+          });
+
+          // 设置超时检测（8秒）
           setTimeout(() => {
-            // 尝试检查 iframe 是否加载成功
-            try {
-              // 如果 iframe 有内容，说明加载成功
-              if (iframe.contentDocument && iframe.contentDocument.body) {
-                iframe.style.display = "block";
-                if (loadingPlaceholder) {
-                  loadingPlaceholder.style.display = "none";
+            // 如果 iframe 仍然隐藏，说明加载失败
+            if (iframe.style.opacity === "0") {
+              // 尝试检查 iframe 是否真的加载了内容
+              try {
+                // 检查 iframe 是否有内容
+                if (
+                  iframe.contentDocument &&
+                  iframe.contentDocument.readyState === "complete"
+                ) {
+                  // 加载成功，显示 iframe
+                  iframe.style.opacity = "1";
+                  iframe.style.visibility = "visible";
+                  if (loadingPlaceholder) {
+                    loadingPlaceholder.style.display = "none";
+                  }
+                } else {
+                  // 加载失败
+                  handleYouTubeError(iframe);
                 }
-              } else {
-                // 加载失败，显示错误
+              } catch (e) {
+                // 跨域错误，说明 iframe 加载失败
                 handleYouTubeError(iframe);
               }
-            } catch (e) {
-              // 跨域错误，说明 iframe 加载失败
-              handleYouTubeError(iframe);
             }
-          }, 3000);
+          }, 8000);
         });
       });
     </script>

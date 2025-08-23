@@ -93,7 +93,18 @@ class TranslationService:
         if not content:
             return ""
 
-        # 移除HTML标签
+        # 移除带有 no-translate 类的元素及其内容
+        content = re.sub(
+            r'<[^>]*class="[^"]*no-translate[^"]*"[^>]*>.*?</[^>]*>',
+            "",
+            content,
+            flags=re.DOTALL,
+        )
+
+        # 移除带有 no-translate 类的元素（自闭合标签）
+        content = re.sub(r'<[^>]*class="[^"]*no-translate[^"]*"[^>]*/?>', "", content)
+
+        # 移除其他HTML标签
         content = re.sub(r"<[^>]+>", "", content)
 
         # 移除多余的空白字符
