@@ -183,6 +183,7 @@ body {
   align-items: flex-start;
   margin-bottom: var(--space-1);
   min-height: 48px;
+  width: 100%;
 }
 
 .avatar {
@@ -212,6 +213,9 @@ body {
 .tweet-info {
   flex: 1;
   padding-top: var(--space-1);
+  min-width: 0;
+  overflow: hidden;
+  max-width: calc(100% - 60px);
 }
 
 .tweet-author {
@@ -219,27 +223,55 @@ body {
   align-items: center;
   gap: var(--space-1);
   flex-wrap: wrap;
+  min-width: 0;
 }
 
 .name {
   font-weight: 700;
   color: var(--text-primary);
-  max-width: 180px;
+  max-width: 160px;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
+  flex-shrink: 1;
+  min-width: 0;
+  display: inline-block;
 }
 
 .username {
   color: var(--text-secondary);
-  max-width: 180px;
+  max-width: 160px;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
+  flex-shrink: 1;
+  min-width: 0;
+  display: inline-block;
 }
 
 .date {
   color: var(--text-secondary);
+  flex-shrink: 0;
+}
+
+/* Stats页面特殊样式 */
+.stats-grid + div .tweet .tweet-author .name,
+.stats-grid + div .tweet .tweet-author .username {
+  max-width: 100px;
+}
+
+.stats-grid + div .tweet .tweet-info {
+  max-width: calc(100% - 70px);
+}
+
+/* 强制文字省略 */
+.tweet-author .name,
+.tweet-author .username {
+  display: block !important;
+  max-width: 100px !important;
+  overflow: hidden !important;
+  text-overflow: ellipsis !important;
+  white-space: nowrap !important;
 }
 
 .tweet-content {

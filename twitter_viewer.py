@@ -1284,6 +1284,22 @@ def stats():
     top_tweets = []
     for row in cursor.fetchall():
         tweet = dict(row)
+        # 解析媒体文件JSON
+        if tweet.get("media_files"):
+            try:
+                tweet["media_files"] = json.loads(tweet["media_files"])
+            except (json.JSONDecodeError, TypeError):
+                tweet["media_files"] = []
+        else:
+            tweet["media_files"] = []
+        # 解析话题标签JSON
+        if tweet.get("hashtags"):
+            try:
+                tweet["hashtags"] = json.loads(tweet["hashtags"])
+            except (json.JSONDecodeError, TypeError):
+                tweet["hashtags"] = []
+        else:
+            tweet["hashtags"] = []
         # 转换推文头像URL为本地路径
         tweet = process_tweet_data(tweet)
         top_tweets.append(tweet)

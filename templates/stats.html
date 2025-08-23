@@ -50,8 +50,26 @@ render_header("统计信息") }} {{ render_navigation("stats") }}
         alt="Avatar" />
     </a>
     <div class="user-info">
-      <div class="name">{{ user.name }}</div>
-      <div class="username">@{{ user.nick }}</div>
+      <div
+        class="name"
+        style="
+          max-width: 120px;
+          overflow: hidden;
+          text-overflow: ellipsis;
+          white-space: nowrap;
+        ">
+        {{ user.nick }}
+      </div>
+      <div
+        class="username"
+        style="
+          max-width: 120px;
+          overflow: hidden;
+          text-overflow: ellipsis;
+          white-space: nowrap;
+        ">
+        @{{ user.name }}
+      </div>
       <div class="user-stats">
         <span>{{ user.tweet_count }} 推文</span>
         <span>{{ user.followers_count|format_number }} 关注者</span>
@@ -77,14 +95,57 @@ render_header("统计信息") }} {{ render_navigation("stats") }}
       </a>
       <div class="tweet-info">
         <div class="tweet-author">
-          <span class="name">{{ tweet.author_nick }}</span>
-          <span class="username">@{{ tweet.author_name }}</span>
+          <span
+            class="name"
+            style="
+              max-width: 80px;
+              overflow: hidden;
+              text-overflow: ellipsis;
+              white-space: nowrap;
+              display: inline-block;
+            "
+            >{{ tweet.author_nick }}</span
+          >
+          <span
+            class="username"
+            style="
+              max-width: 80px;
+              overflow: hidden;
+              text-overflow: ellipsis;
+              white-space: nowrap;
+              display: inline-block;
+            "
+            >@{{ tweet.author_name }}</span
+          >
           <span class="date">· {{ tweet.date|format_date }}</span>
         </div>
       </div>
     </div>
 
-    <div class="tweet-content">{{ tweet.content|safe }}</div>
+    <div class="tweet-content">
+      {{ tweet.content|safe }} {% if tweet.hashtags %} {% for tag in
+      tweet.hashtags %}
+      <a href="/search?q=%23{{ tag }}" class="hashtag">#{{ tag }}</a>
+      {% endfor %} {% endif %}
+    </div>
+
+    {% if tweet.media_files %}
+    <div
+      class="tweet-media {% if tweet.media_files|length == 1 %}single{% elif tweet.media_files|length == 2 %}double{% elif tweet.media_files|length == 3 %}triple{% else %}quad{% endif %}">
+      {% for media in tweet.media_files[:4] %}
+      <div class="media-item">
+        {% if media.endswith('.mp4') or media.endswith('.mov') or
+        media.endswith('.avi') %}
+        <video controls>
+          <source src="/{{ media }}" type="video/mp4" />
+        </video>
+        {% else %}
+        <img data-src="/{{ media }}" alt="Media" loading="lazy" />
+        {% endif %}
+      </div>
+      {% endfor %}
+    </div>
+    {% endif %}
 
     <div class="tweet-stats">
       <div class="stat">
