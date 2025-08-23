@@ -460,7 +460,11 @@
         `;
         const textNode = resultElement.querySelector(".translation-text");
         if (textNode) {
-          textNode.textContent = result.translated || "";
+          const safeContent = (result.translated || "").replace(
+            /<(?!br\s*\/?>)[^>]*>/g,
+            ""
+          );
+          textNode.innerHTML = safeContent;
         }
       }
 
@@ -561,6 +565,104 @@
               `;
             }
           }
+        });
+      });
+
+      // YouTube 错误处理函数
+      function handleYouTubeLoad(iframe) {
+        // iframe 加载成功，隐藏加载占位符
+        const container = iframe.closest(".youtube-embed");
+        const loadingPlaceholder = container.querySelector(".youtube-loading");
+        if (loadingPlaceholder) {
+          loadingPlaceholder.style.display = "none";
+        }
+      }
+
+      function handleYouTubeError(iframe) {
+        // iframe 加载失败，显示错误占位符
+        const container = iframe.closest(".youtube-embed");
+        const errorPlaceholder = container.querySelector(".youtube-error");
+        const loadingPlaceholder = container.querySelector(".youtube-loading");
+
+        if (loadingPlaceholder) {
+          loadingPlaceholder.style.display = "none";
+        }
+
+        if (errorPlaceholder) {
+          errorPlaceholder.style.display = "flex";
+        }
+
+        // 隐藏 iframe
+        iframe.style.display = "none";
+      }
+
+      function retryYouTubeVideo(button) {
+        // 重试加载 YouTube 视频
+        const container = button.closest(".youtube-embed");
+        const iframe = container.querySelector("iframe");
+        const errorPlaceholder = container.querySelector(".youtube-error");
+        const loadingPlaceholder = container.querySelector(".youtube-loading");
+        const videoId = container.getAttribute("data-video-id");
+
+        // 显示加载状态
+        if (errorPlaceholder) {
+          errorPlaceholder.style.display = "none";
+        }
+        if (loadingPlaceholder) {
+          loadingPlaceholder.style.display = "flex";
+        }
+
+        // 隐藏 iframe，显示加载占位符
+        iframe.style.display = "none";
+
+        // 重新加载 iframe
+        iframe.src = `https://www.youtube.com/embed/${videoId}?t=${Date.now()}`;
+
+        // 设置超时检测（5秒）
+        setTimeout(() => {
+          if (iframe.style.display === "none") {
+            handleYouTubeError(iframe);
+          }
+        }, 5000);
+      }
+
+      // 页面加载时检查 YouTube iframe 状态
+      document.addEventListener("DOMContentLoaded", function () {
+        // 为所有 YouTube iframe 添加错误处理
+        const youtubeIframes = document.querySelectorAll(
+          ".youtube-embed iframe"
+        );
+        youtubeIframes.forEach((iframe) => {
+          const container = iframe.closest(".youtube-embed");
+          const loadingPlaceholder =
+            container.querySelector(".youtube-loading");
+          const errorPlaceholder = container.querySelector(".youtube-error");
+
+          // 立即显示加载占位符并隐藏 iframe
+          if (loadingPlaceholder) {
+            loadingPlaceholder.style.display = "flex";
+          }
+          iframe.style.display = "none";
+
+          // 模拟加载过程（因为 iframe 的 load 事件可能不会触发）
+          setTimeout(() => {
+            // 尝试检查 iframe 是否加载成功
+            try {
+              // 如果 iframe 有内容，说明加载成功
+              if (iframe.contentDocument && iframe.contentDocument.body) {
+                iframe.style.display = "block";
+                if (loadingPlaceholder) {
+                  loadingPlaceholder.style.display = "none";
+                }
+              } else {
+                // 加载失败，显示错误
+                handleYouTubeError(iframe);
+              }
+            } catch (e) {
+              // 跨域错误，说明 iframe 加载失败
+              handleYouTubeError(iframe);
+            }
+          }, 3000);
         });
       });
     </script>

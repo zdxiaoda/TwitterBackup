@@ -269,8 +269,36 @@ def process_tweet_data(tweet_dict):
             full_url = match.group(1)
             video_id = match.group(2)
 
-            # 直接返回HTML嵌入框架
-            return f'<div class="youtube-embed" style="margin-top: 10px;"><iframe width="100%" height="315" src="https://www.youtube.com/embed/{video_id}" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe></div>'
+            # 返回带有错误处理的HTML嵌入框架
+            return f"""<div class="youtube-embed" style="margin-top: 10px;" data-video-id="{video_id}">
+                <iframe 
+                    width="100%" 
+                    height="315" 
+                    src="https://www.youtube.com/embed/{video_id}" 
+                    frameborder="0" 
+                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" 
+                    allowfullscreen
+                    onload="handleYouTubeLoad(this)"
+                    onerror="handleYouTubeError(this)"
+                ></iframe>
+                <div class="youtube-placeholder youtube-loading" style="display: none;">
+                    <div class="youtube-placeholder-content">
+                        <i class="fas fa-spinner youtube-placeholder-icon"></i>
+                        <div class="youtube-placeholder-text">正在加载视频...</div>
+                        <div class="youtube-placeholder-subtext">请稍候，正在连接到 YouTube</div>
+                    </div>
+                </div>
+                <div class="youtube-placeholder youtube-error" style="display: none;">
+                    <div class="youtube-placeholder-content">
+                        <i class="fas fa-exclamation-triangle youtube-placeholder-icon"></i>
+                        <div class="youtube-placeholder-text">视频加载失败</div>
+                        <div class="youtube-placeholder-subtext">无法访问此 YouTube 视频，可能是网络问题或视频已被删除</div>
+                        <button class="youtube-placeholder-button" onclick="retryYouTubeVideo(this)">
+                            <i class="fas fa-redo"></i> 重试
+                        </button>
+                    </div>
+                </div>
+            </div>"""
 
         # 替换所有YouTube链接
         content = re.sub(youtube_pattern, replace_youtube_link, content)

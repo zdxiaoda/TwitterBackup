@@ -197,7 +197,7 @@ class TranslationService:
         target_lang_name = self.supported_languages.get(target_lang, "中文")
 
         # 构建翻译提示
-        system_prompt = f"""你是一个专业的推文翻译助手。请将以下推文翻译成{target_lang_name}。
+        system_prompt = f"""你是一个专业的推文翻译助手。请将以下推文翻译成{target_lang_name}。请注意使用<br>来作为换行符号。
 
 翻译要求：
 1. 保持推文的原始语气和风格
