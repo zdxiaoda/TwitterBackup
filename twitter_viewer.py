@@ -510,43 +510,20 @@ def index():
             u.name as user_name,
             u.nick as user_nick,
             u.profile_image as user_avatar,
-            -- 相关推文信息
+            -- 转发推文信息
             rt.content as retweet_content,
             rt.author_id as retweet_author_id,
             rt.user_id as retweet_user_id,
             rt.media_files as retweet_media_files,
             rta.name as retweet_author_name,
             rta.nick as retweet_author_nick,
-            rta.profile_image as retweet_author_avatar,
-            qt.content as quote_content,
-            qt.author_id as quote_author_id,
-            qt.user_id as quote_user_id,
-            qt.media_files as quote_media_files,
-            qta.name as quote_author_name,
-            qta.nick as quote_author_nick,
-            qta.profile_image as quote_author_avatar,
-            rp.content as reply_content,
-            rp.author_id as reply_author_id,
-            rp.user_id as reply_user_id,
-            rp.media_files as reply_media_files,
-            rpa.name as reply_author_name,
-            rpa.nick as reply_author_nick,
-            rpa.profile_image as reply_author_avatar,
-            rpu.name as reply_user_name,
-            rpu.nick as reply_user_nick
+            rta.profile_image as retweet_author_avatar
         FROM tweets t
         LEFT JOIN users a ON t.author_id = a.user_id
         LEFT JOIN users u ON t.user_id = u.user_id
         -- 关联转发推文
         LEFT JOIN tweets rt ON t.retweet_id = rt.tweet_id
         LEFT JOIN users rta ON rt.author_id = rta.user_id
-        -- 关联引用推文
-        LEFT JOIN tweets qt ON t.quote_id = qt.tweet_id
-        LEFT JOIN users qta ON qt.author_id = qta.user_id
-        -- 关联回复推文
-        LEFT JOIN tweets rp ON t.reply_id = rp.tweet_id
-        LEFT JOIN users rpa ON rp.author_id = rpa.user_id
-        LEFT JOIN users rpu ON rp.user_id = rpu.user_id
         ORDER BY t.date DESC
         LIMIT ? OFFSET ?
     """,
@@ -585,24 +562,82 @@ def index():
                 "author_avatar": tweet.get("retweet_author_avatar"),
             }
 
-        if tweet["is_quote"] and tweet.get("quote_content"):
-            tweet["quote_info"] = {
-                "content": tweet["quote_content"],
-                "author_id": tweet["quote_author_id"],
-                "user_id": tweet["quote_user_id"],
-                "author_name": tweet.get("quote_author_name"),
-                "author_nick": tweet.get("quote_author_nick"),
-                "author_avatar": tweet.get("quote_author_avatar"),
+        # 反向查找原始被引用推文
+        cursor.execute(
+            """
+            SELECT 
+                t.*,
+                a.name as author_name,
+                a.nick as author_nick,
+                a.profile_image as author_avatar,
+                u.name as user_name,
+                u.nick as user_nick,
+                u.profile_image as user_avatar
+            FROM tweets t
+            LEFT JOIN users a ON t.author_id = a.user_id
+            LEFT JOIN users u ON t.user_id = u.user_id
+            WHERE t.quote_id = ?
+            LIMIT 1
+            """,
+            (tweet["tweet_id"],),
+        )
+        quoted_orig = cursor.fetchone()
+        if quoted_orig:
+            qo = dict(quoted_orig)
+            quote_media_files = []
+            if qo.get("media_files"):
+                try:
+                    quote_media_files = json.loads(qo["media_files"])
+                except Exception:
+                    quote_media_files = []
+            tweet["quoted_info"] = {
+                "tweet_id": qo.get("tweet_id"),
+                "content": qo.get("content"),
+                "author_id": qo.get("author_id"),
+                "user_id": qo.get("user_id"),
+                "author_name": qo.get("author_name"),
+                "author_nick": qo.get("author_nick"),
+                "author_avatar": qo.get("author_avatar"),
+                "media_files": quote_media_files,
             }
 
-        if tweet["is_reply"] and tweet.get("reply_content"):
-            tweet["reply_info"] = {
-                "content": tweet["reply_content"],
-                "author_id": tweet["reply_author_id"],
-                "user_id": tweet["reply_user_id"],
-                "author_name": tweet.get("reply_author_name"),
-                "author_nick": tweet.get("reply_author_nick"),
-                "author_avatar": tweet.get("reply_author_avatar"),
+        # 反向查找原始被回复推文
+        cursor.execute(
+            """
+            SELECT 
+                t.*,
+                a.name as author_name,
+                a.nick as author_nick,
+                a.profile_image as author_avatar,
+                u.name as user_name,
+                u.nick as user_nick,
+                u.profile_image as user_avatar
+            FROM tweets t
+            LEFT JOIN users a ON t.author_id = a.user_id
+            LEFT JOIN users u ON t.user_id = u.user_id
+            WHERE t.reply_id = ?
+            LIMIT 1
+            """,
+            (tweet["tweet_id"],),
+        )
+        replied_orig = cursor.fetchone()
+        if replied_orig:
+            ro = dict(replied_orig)
+            reply_media_files = []
+            if ro.get("media_files"):
+                try:
+                    reply_media_files = json.loads(ro["media_files"])
+                except Exception:
+                    reply_media_files = []
+            tweet["replied_info"] = {
+                "tweet_id": ro.get("tweet_id"),
+                "content": ro.get("content"),
+                "author_id": ro.get("author_id"),
+                "user_id": ro.get("user_id"),
+                "author_name": ro.get("author_name"),
+                "author_nick": ro.get("author_nick"),
+                "author_avatar": ro.get("author_avatar"),
+                "media_files": reply_media_files,
             }
 
         # 转换头像URL为本地路径
