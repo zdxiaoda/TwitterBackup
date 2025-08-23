@@ -1490,6 +1490,26 @@
               <option value="deepl">DeepL</option>
             </select>
           </div>
+          <div class="form-group" id="openai-model-group" style="display: none">
+            <label class="form-label">OpenAI模型</label>
+            <select class="form-select" id="openai-model" name="openai_model">
+              <option value="gpt-3.5-turbo">GPT-3.5 Turbo</option>
+              <option value="gpt-4">GPT-4</option>
+              <option value="gpt-4-turbo">GPT-4 Turbo</option>
+              <option value="gpt-4o">GPT-4o</option>
+              <option value="gpt-4o-mini">GPT-4o Mini</option>
+              <option value="custom">自定义模型</option>
+            </select>
+          </div>
+          <div class="form-group" id="custom-model-group" style="display: none">
+            <label class="form-label">自定义模型名称</label>
+            <input
+              type="text"
+              class="form-input"
+              id="custom-model"
+              name="custom_model"
+              placeholder="例如: gpt-4-1106-preview" />
+          </div>
           <div class="form-group">
             <label class="form-label">API Key</label>
             <input
@@ -1499,8 +1519,8 @@
               name="api_key"
               placeholder="请输入API密钥" />
           </div>
-          <div class="form-group">
-            <label class="form-label">API Secret (可选)</label>
+          <div class="form-group" id="api-secret-group" style="display: none">
+            <label class="form-label">API Secret</label>
             <input
               type="password"
               class="form-input"
@@ -1508,8 +1528,8 @@
               name="api_secret"
               placeholder="请输入API密钥" />
           </div>
-          <div class="form-group">
-            <label class="form-label">API URL (可选)</label>
+          <div class="form-group" id="api-url-group" style="display: none">
+            <label class="form-label">API URL</label>
             <input
               type="text"
               class="form-input"
@@ -1628,9 +1648,119 @@
 
         document.getElementById("translation-service").value =
           settings.translation_service || "google";
+        document.getElementById("openai-model").value =
+          settings.openai_model || "gpt-3.5-turbo";
+        document.getElementById("custom-model").value =
+          settings.custom_model || "";
         document.getElementById("api-key").value = settings.api_key || "";
         document.getElementById("api-secret").value = settings.api_secret || "";
         document.getElementById("api-url").value = settings.api_url || "";
+
+        // 根据翻译服务显示/隐藏模型选择
+        toggleModelSelection();
+        // 更新API Key的placeholder
+        updateApiKeyPlaceholder();
+      }
+
+      function toggleModelSelection() {
+        const serviceType = document.getElementById(
+          "translation-service"
+        ).value;
+        const modelGroup = document.getElementById("openai-model-group");
+        const customModelGroup = document.getElementById("custom-model-group");
+        const apiSecretGroup = document.getElementById("api-secret-group");
+        const apiUrlGroup = document.getElementById("api-url-group");
+
+        // 显示/隐藏OpenAI模型选择
+        if (serviceType === "openai") {
+          modelGroup.style.display = "block";
+          // 检查是否选择了自定义模型
+          const modelSelect = document.getElementById("openai-model");
+          if (modelSelect.value === "custom") {
+            customModelGroup.style.display = "block";
+          } else {
+            customModelGroup.style.display = "none";
+          }
+          // OpenAI不需要API Secret
+          apiSecretGroup.style.display = "none";
+        } else {
+          modelGroup.style.display = "none";
+          customModelGroup.style.display = "none";
+        }
+
+        // 显示/隐藏API Secret输入框
+        if (serviceType === "baidu" || serviceType === "youdao") {
+          // 百度翻译和有道翻译需要API Secret
+          apiSecretGroup.style.display = "block";
+        } else {
+          // 其他服务不需要API Secret
+          apiSecretGroup.style.display = "none";
+        }
+
+        // 显示/隐藏API URL输入框
+        if (
+          serviceType === "openai" ||
+          serviceType === "google" ||
+          serviceType === "deepl"
+        ) {
+          // OpenAI、Google、DeepL支持自定义URL
+          apiUrlGroup.style.display = "block";
+        } else {
+          // 百度翻译和有道翻译通常不需要自定义URL
+          apiUrlGroup.style.display = "none";
+        }
+
+        // 更新API Key的placeholder
+        updateApiKeyPlaceholder();
+      }
+
+      function toggleCustomModel() {
+        const modelSelect = document.getElementById("openai-model");
+        const customModelGroup = document.getElementById("custom-model-group");
+
+        if (modelSelect.value === "custom") {
+          customModelGroup.style.display = "block";
+        } else {
+          customModelGroup.style.display = "none";
+        }
+      }
+
+      function updateApiKeyPlaceholder() {
+        const serviceType = document.getElementById(
+          "translation-service"
+        ).value;
+        const apiKeyInput = document.getElementById("api-key");
+        const apiSecretInput = document.getElementById("api-secret");
+        const apiUrlInput = document.getElementById("api-url");
+
+        const keyPlaceholders = {
+          openai: "请输入OpenAI API Key",
+          google: "请输入Google API Key",
+          baidu: "请输入百度翻译App ID",
+          youdao: "请输入有道翻译App Key",
+          deepl: "请输入DeepL API Key",
+        };
+
+        const secretPlaceholders = {
+          baidu: "请输入百度翻译App Secret",
+          youdao: "请输入有道翻译App Secret",
+        };
+
+        const urlPlaceholders = {
+          openai:
+            "例如: https://api.openai.com/v1 或 https://your-domain.com/v1",
+          google:
+            "例如: https://translation.googleapis.com/language/translate/v2",
+          deepl:
+            "例如: https://api-free.deepl.com/v2/translate 或 https://api-pro.deepl.com/v2/translate",
+        };
+
+        apiKeyInput.placeholder =
+          keyPlaceholders[serviceType] || "请输入API密钥";
+        apiSecretInput.placeholder =
+          secretPlaceholders[serviceType] || "请输入API密钥";
+        apiUrlInput.placeholder =
+          urlPlaceholders[serviceType] || "自定义API地址";
       }
 
       function saveSettings() {
@@ -1639,6 +1769,8 @@
 
         const settings = {
           translation_service: formData.get("translation_service"),
+          openai_model: formData.get("openai_model"),
+          custom_model: formData.get("custom_model"),
           api_key: formData.get("api_key"),
           api_secret: formData.get("api_secret"),
           api_url: formData.get("api_url"),
@@ -1665,6 +1797,20 @@
         settingsForm.addEventListener("submit", function (e) {
           e.preventDefault();
           saveSettings();
+        });
+
+        // 翻译服务选择变化事件
+        const translationService = document.getElementById(
+          "translation-service"
+        );
+        translationService.addEventListener("change", function () {
+          toggleModelSelection();
+        });
+
+        // 模型选择变化事件
+        const openaiModel = document.getElementById("openai-model");
+        openaiModel.addEventListener("change", function () {
+          toggleCustomModel();
         });
 
         // 点击模态框外部关闭
@@ -1740,6 +1886,10 @@
               content: originalText,
               target_lang: targetLang,
               translation_service: settings.translation_service,
+              openai_model:
+                settings.openai_model === "custom"
+                  ? settings.custom_model
+                  : settings.openai_model,
               api_key: settings.api_key,
               api_secret: settings.api_secret,
               api_url: settings.api_url,

@@ -28,6 +28,7 @@ class TranslationService:
         api_key: Optional[str] = None,
         api_secret: Optional[str] = None,
         api_url: Optional[str] = None,
+        openai_model: str = "gpt-3.5-turbo",
     ):
         """
         初始化翻译服务
@@ -42,6 +43,7 @@ class TranslationService:
         self.api_key = api_key
         self.api_secret = api_secret
         self.api_url = api_url
+        self.openai_model = openai_model
 
         if not self.api_key:
             raise ValueError("API密钥未设置")
@@ -187,7 +189,9 @@ class TranslationService:
         """使用OpenAI翻译API"""
         import openai
 
-        client = openai.OpenAI(api_key=self.api_key)
+        # 使用自定义URL或默认URL
+        base_url = self.api_url if self.api_url else "https://api.openai.com/v1"
+        client = openai.OpenAI(api_key=self.api_key, base_url=base_url)
 
         # 获取目标语言名称
         target_lang_name = self.supported_languages.get(target_lang, "中文")
@@ -205,7 +209,7 @@ class TranslationService:
 请只返回翻译结果，不要添加任何解释或额外内容。"""
 
         response = client.chat.completions.create(
-            model="gpt-3.5-turbo",
+            model=self.openai_model,
             messages=[
                 {"role": "system", "content": system_prompt},
                 {"role": "user", "content": content},
@@ -220,7 +224,12 @@ class TranslationService:
         self, content: str, target_lang: str, source_lang: str
     ) -> str:
         """使用Google翻译API"""
-        url = "https://translation.googleapis.com/language/translate/v2"
+        # 使用自定义URL或默认URL
+        url = (
+            self.api_url
+            if self.api_url
+            else "https://translation.googleapis.com/language/translate/v2"
+        )
         params = {
             "key": self.api_key,
             "q": content,
@@ -239,7 +248,12 @@ class TranslationService:
         self, content: str, target_lang: str, source_lang: str
     ) -> str:
         """使用百度翻译API"""
-        url = "https://fanyi-api.baidu.com/api/trans/vip/translate"
+        # 使用自定义URL或默认URL
+        url = (
+            self.api_url
+            if self.api_url
+            else "https://fanyi-api.baidu.com/api/trans/vip/translate"
+        )
 
         # 百度翻译的语言代码映射
         lang_map = {
@@ -279,7 +293,8 @@ class TranslationService:
         self, content: str, target_lang: str, source_lang: str
     ) -> str:
         """使用有道翻译API"""
-        url = "https://openapi.youdao.com/api"
+        # 使用自定义URL或默认URL
+        url = self.api_url if self.api_url else "https://openapi.youdao.com/api"
 
         salt = str(int(time.time()))
         input_text = (
@@ -313,7 +328,10 @@ class TranslationService:
         self, content: str, target_lang: str, source_lang: str
     ) -> str:
         """使用DeepL翻译API"""
-        url = "https://api-free.deepl.com/v2/translate"
+        # 使用自定义URL或默认URL
+        url = (
+            self.api_url if self.api_url else "https://api-free.deepl.com/v2/translate"
+        )
 
         # DeepL的语言代码映射
         lang_map = {
@@ -380,7 +398,9 @@ class TranslationService:
             # 对于OpenAI服务，使用原来的方法
             import openai
 
-            client = openai.OpenAI(api_key=self.api_key)
+            # 使用自定义URL或默认URL
+            base_url = self.api_url if self.api_url else "https://api.openai.com/v1"
+            client = openai.OpenAI(api_key=self.api_key, base_url=base_url)
 
             system_prompt = """你是一个语言检测专家。请检测以下文本的语言，并返回对应的语言代码。
 
@@ -401,7 +421,7 @@ class TranslationService:
 请只返回语言代码，不要添加任何其他内容。"""
 
             response = client.chat.completions.create(
-                model="gpt-3.5-turbo",
+                model=self.openai_model,
                 messages=[
                     {"role": "system", "content": system_prompt},
                     {"role": "user", "content": clean_content},
@@ -476,6 +496,7 @@ def get_translation_service(
     api_key: str = None,
     api_secret: str = None,
     api_url: str = None,
+    openai_model: str = "gpt-3.5-turbo",
 ) -> TranslationService:
     """
     获取全局翻译服务实例
@@ -496,6 +517,7 @@ def get_translation_service(
             api_key=api_key,
             api_secret=api_secret,
             api_url=api_url,
+            openai_model=openai_model,
         )
     return _translation_service
 

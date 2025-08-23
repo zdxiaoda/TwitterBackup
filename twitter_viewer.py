@@ -1203,6 +1203,10 @@ def api_translate():
         content = data.get("content", "")
         target_lang = data.get("target_lang", "zh")
         translation_service = data.get("translation_service", "google")
+        openai_model = data.get("openai_model", "gpt-3.5-turbo")
+        # 如果模型名称为空，使用默认值
+        if not openai_model:
+            openai_model = "gpt-3.5-turbo"
         api_key = data.get("api_key", "")
         api_secret = data.get("api_secret", "")
         api_url = data.get("api_url", "")
@@ -1221,6 +1225,7 @@ def api_translate():
             api_key=api_key,
             api_secret=api_secret,
             api_url=api_url,
+            openai_model=openai_model,
         )
 
         # 执行翻译
@@ -1242,6 +1247,10 @@ def api_detect_language():
 
         content = data.get("content", "")
         translation_service = data.get("translation_service", "google")
+        openai_model = data.get("openai_model", "gpt-3.5-turbo")
+        # 如果模型名称为空，使用默认值
+        if not openai_model:
+            openai_model = "gpt-3.5-turbo"
         api_key = data.get("api_key", "")
         api_secret = data.get("api_secret", "")
         api_url = data.get("api_url", "")
@@ -1260,6 +1269,7 @@ def api_detect_language():
             api_key=api_key,
             api_secret=api_secret,
             api_url=api_url,
+            openai_model=openai_model,
         )
 
         # 执行语言检测
