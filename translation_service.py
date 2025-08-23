@@ -487,10 +487,6 @@ class TranslationService:
         return self.supported_languages.copy()
 
 
-# 全局翻译服务实例
-_translation_service = None
-
-
 def get_translation_service(
     service_type: str = "google",
     api_key: str = None,
@@ -499,53 +495,88 @@ def get_translation_service(
     openai_model: str = "gpt-3.5-turbo",
 ) -> TranslationService:
     """
-    获取全局翻译服务实例
+    获取翻译服务实例
 
     Args:
         service_type: 翻译服务类型
         api_key: API密钥
         api_secret: API密钥
         api_url: 自定义API地址
+        openai_model: OpenAI模型名称
 
     Returns:
         翻译服务实例
     """
-    global _translation_service
-    if _translation_service is None:
-        _translation_service = TranslationService(
-            service_type=service_type,
-            api_key=api_key,
-            api_secret=api_secret,
-            api_url=api_url,
-            openai_model=openai_model,
-        )
-    return _translation_service
+    return TranslationService(
+        service_type=service_type,
+        api_key=api_key,
+        api_secret=api_secret,
+        api_url=api_url,
+        openai_model=openai_model,
+    )
 
 
-def translate_tweet_content(content: str, target_lang: str = "zh") -> Dict[str, Any]:
+def translate_tweet_content(
+    content: str,
+    target_lang: str = "zh",
+    service_type: str = "google",
+    api_key: str = None,
+    api_secret: str = None,
+    api_url: str = None,
+    openai_model: str = "gpt-3.5-turbo",
+) -> Dict[str, Any]:
     """
     翻译推文内容的便捷函数
 
     Args:
         content: 要翻译的推文内容
         target_lang: 目标语言代码
+        service_type: 翻译服务类型
+        api_key: API密钥
+        api_secret: API密钥
+        api_url: 自定义API地址
+        openai_model: OpenAI模型名称
 
     Returns:
         翻译结果字典
     """
-    service = get_translation_service()
+    service = get_translation_service(
+        service_type=service_type,
+        api_key=api_key,
+        api_secret=api_secret,
+        api_url=api_url,
+        openai_model=openai_model,
+    )
     return service.translate_tweet(content, target_lang)
 
 
-def detect_tweet_language(content: str) -> Dict[str, Any]:
+def detect_tweet_language(
+    content: str,
+    service_type: str = "google",
+    api_key: str = None,
+    api_secret: str = None,
+    api_url: str = None,
+    openai_model: str = "gpt-3.5-turbo",
+) -> Dict[str, Any]:
     """
     检测推文语言的便捷函数
 
     Args:
         content: 要检测的推文内容
+        service_type: 翻译服务类型
+        api_key: API密钥
+        api_secret: API密钥
+        api_url: 自定义API地址
+        openai_model: OpenAI模型名称
 
     Returns:
         语言检测结果字典
     """
-    service = get_translation_service()
+    service = get_translation_service(
+        service_type=service_type,
+        api_key=api_key,
+        api_secret=api_secret,
+        api_url=api_url,
+        openai_model=openai_model,
+    )
     return service.detect_language(content)

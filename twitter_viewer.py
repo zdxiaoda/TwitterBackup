@@ -14,11 +14,7 @@ from datetime import datetime, timedelta
 import os
 import re
 from urllib.parse import urlparse
-from translation_service import (
-    get_translation_service,
-    translate_tweet_content,
-    detect_tweet_language,
-)
+from translation_service import get_translation_service
 
 app = Flask(__name__)
 app.config["SECRET_KEY"] = "your-secret-key-here"
