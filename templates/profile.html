@@ -1,6 +1,7 @@
 {% extends "base.html" %} {% from "tweet_conversation.html" import
-render_tweet_conversation %} {% block title %}{{ user.name }} (@{{ user.nick }})
-- Twitter 备份查看器{% endblock %} {% block content %}
+render_tweet_conversation %} {% from "base.html" import render_pagination %} {%
+block title %}{{ user.name }} (@{{ user.nick }}) - Twitter 备份查看器{% endblock
+%} {% block content %}
 <div class="profile-header">
   {% if user.profile_banner %}
   <img class="profile-banner" src="{{ user.profile_banner }}" alt="Banner" />
@@ -105,20 +106,8 @@ render_tweet_conversation %} {% block title %}{{ user.name }} (@{{ user.nick }})
   {% for tweet in tweets %} {{ render_tweet_conversation(tweet) }} {% endfor %}
 </div>
 
-{% if total_pages > 1 %}
-<div class="pagination">
-  {% if page > 1 %}
-  <a href="/user/{{ user.user_id }}?page={{ page - 1 }}">上一页</a>
-  {% endif %} {% for p in range(1, total_pages + 1) %} {% if p <= 10 %} {% if p
-  == page %}
-  <a class="current">{{ p }}</a>
-  {% else %}
-  <a href="/user/{{ user.user_id }}?page={{ p }}">{{ p }}</a>
-  {% endif %} {% endif %} {% endfor %} {% if page < total_pages %}
-  <a href="/user/{{ user.user_id }}?page={{ page + 1 }}">下一页</a>
-  {% endif %}
-</div>
-{% endif %} {% if tweets|length == 0 %}
+{{ render_pagination(pagination, page, total_pages, "/user/" +
+user.user_id|string + "?") }} {% if tweets|length == 0 %}
 <div class="empty">
   <p>该用户暂无推文</p>
 </div>

@@ -435,6 +435,52 @@
         background-color: var(--bg-color);
       }
 
+      .search-filters {
+        display: flex;
+        gap: 12px;
+        align-items: center;
+        flex-wrap: wrap;
+      }
+
+      .search-select {
+        padding: 8px 12px;
+        background-color: var(--hover-bg-color);
+        border: 1px solid var(--border-color);
+        border-radius: 6px;
+        color: var(--text-color);
+        font-size: 14px;
+        font-family: "Source Han Sans CN", "Noto Sans CJK SC", "PingFang SC",
+          "Hiragino Sans GB", "Microsoft YaHei", sans-serif;
+        cursor: pointer;
+        min-width: 100px;
+      }
+
+      .search-select:focus {
+        outline: none;
+        border-color: var(--link-color);
+      }
+
+      .search-button {
+        padding: 8px 16px;
+        background-color: var(--link-color);
+        color: var(--card-bg-color);
+        border: none;
+        border-radius: 6px;
+        font-size: 14px;
+        font-weight: 500;
+        cursor: pointer;
+        transition: background-color 0.2s;
+      }
+
+      .search-button:hover {
+        background-color: var(--link-hover-color);
+      }
+
+      .dots {
+        color: var(--secondary-text-color);
+        padding: 8px 4px;
+      }
+
       .user-card {
         display: flex;
         align-items: center;
@@ -1089,3 +1135,26 @@
     </script>
   </body>
 </html>
+
+{% macro render_pagination(pagination, page, total_pages, base_url) %} {% if
+total_pages > 1 %}
+<div class="pagination">
+  {% if page > 1 %}
+  <a href="{{ base_url }}page={{ page - 1 }}">上一页</a>
+  {% endif %} {% if pagination.show_first %}
+  <a href="{{ base_url }}page=1">1</a>
+  {% if pagination.show_prev_dots %}
+  <span class="dots">...</span>
+  {% endif %} {% endif %} {% for p in pagination.pages %} {% if p == page %}
+  <a class="current">{{ p }}</a>
+  {% else %}
+  <a href="{{ base_url }}page={{ p }}">{{ p }}</a>
+  {% endif %} {% endfor %} {% if pagination.show_next_dots %}
+  <span class="dots">...</span>
+  {% endif %} {% if pagination.show_last %}
+  <a href="{{ base_url }}page={{ total_pages }}">{{ total_pages }}</a>
+  {% endif %} {% if page < total_pages %}
+  <a href="{{ base_url }}page={{ page + 1 }}">下一页</a>
+  {% endif %}
+</div>
+{% endif %} {% endmacro %}

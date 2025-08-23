@@ -245,6 +245,67 @@ def format_number_filter(num):
     return str(num)
 
 
+def get_pagination_range(current_page, total_pages, max_visible=7):
+    """
+    生成智能分页范围
+
+    Args:
+        current_page: 当前页码
+        total_pages: 总页数
+        max_visible: 最大可见页码数
+
+    Returns:
+        dict: 包含分页信息的字典
+    """
+    if total_pages <= max_visible:
+        # 如果总页数小于等于最大可见数，显示所有页码
+        return {
+            "pages": list(range(1, total_pages + 1)),
+            "show_first": False,
+            "show_last": False,
+            "show_prev_dots": False,
+            "show_next_dots": False,
+        }
+
+    # 计算显示的页码范围
+    half_visible = max_visible // 2
+
+    if current_page <= half_visible + 1:
+        # 当前页在开头附近
+        start_page = 1
+        end_page = max_visible
+        show_first = False
+        show_last = total_pages > max_visible
+        show_prev_dots = False
+        show_next_dots = total_pages > max_visible
+    elif current_page >= total_pages - half_visible:
+        # 当前页在结尾附近
+        start_page = total_pages - max_visible + 1
+        end_page = total_pages
+        show_first = total_pages > max_visible
+        show_last = False
+        show_prev_dots = total_pages > max_visible
+        show_next_dots = False
+    else:
+        # 当前页在中间
+        start_page = current_page - half_visible
+        end_page = current_page + half_visible
+        show_first = True
+        show_last = True
+        show_prev_dots = True
+        show_next_dots = True
+
+    pages = list(range(start_page, end_page + 1))
+
+    return {
+        "pages": pages,
+        "show_first": show_first,
+        "show_last": show_last,
+        "show_prev_dots": show_prev_dots,
+        "show_next_dots": show_next_dots,
+    }
+
+
 @app.route("/")
 def index():
     """首页 - 显示所有推文"""
@@ -381,12 +442,14 @@ def index():
 
     # 计算分页信息
     total_pages = (total_tweets + per_page - 1) // per_page
+    pagination = get_pagination_range(page, total_pages)
 
     return render_template(
         "index.html",
         tweets=tweets,
         page=page,
         total_pages=total_pages,
+        pagination=pagination,
         total_tweets=total_tweets,
         total_users=total_users,
         total_media=total_media,
@@ -561,6 +624,7 @@ def user_profile(user_id):
 
     # 计算分页信息
     total_pages = (total_tweets + per_page - 1) // per_page
+    pagination = get_pagination_range(page, total_pages)
 
     return render_template(
         "profile.html",
@@ -568,6 +632,7 @@ def user_profile(user_id):
         tweets=tweets,
         page=page,
         total_pages=total_pages,
+        pagination=pagination,
         total_tweets=total_tweets,
     )
 
@@ -751,15 +816,58 @@ def tweet_detail(tweet_id):
 def search():
     """搜索功能"""
     query = request.args.get("q", "")
-    if not query:
-        return render_template("search.html", tweets=[], query="")
+    year = request.args.get("year", "")
+    month = request.args.get("month", "")
+    page = request.args.get("page", 1, type=int)
+    per_page = 20
+
+    if not query and not year and not month:
+        return render_template(
+            "search.html",
+            tweets=[],
+            query="",
+            year="",
+            month="",
+            page=1,
+            total_pages=0,
+            pagination=None,
+        )
 
     conn = get_db_connection()
     cursor = conn.cursor()
 
+    # 构建搜索条件
+    conditions = []
+    params = []
+
+    if query:
+        conditions.append("t.content LIKE ?")
+        params.append(f"%{query}%")
+
+    if year:
+        conditions.append("strftime('%Y', t.date) = ?")
+        params.append(year)
+
+    if month:
+        conditions.append("strftime('%m', t.date) = ?")
+        params.append(month.zfill(2))
+
+    where_clause = " AND ".join(conditions) if conditions else "1=1"
+
+    # 获取搜索结果总数
+    count_sql = f"""
+        SELECT COUNT(*) FROM tweets t WHERE {where_clause}
+    """
+    cursor.execute(count_sql, params)
+    total_tweets = cursor.fetchone()[0]
+
+    # 计算分页信息
+    total_pages = (total_tweets + per_page - 1) // per_page
+    offset = (page - 1) * per_page
+
     # 搜索推文内容
     cursor.execute(
-        """
+        f"""
         SELECT 
             t.*,
             a.name as author_name,
@@ -802,11 +910,11 @@ def search():
         -- 关联回复推文
         LEFT JOIN tweets rp ON t.reply_id = rp.tweet_id
         LEFT JOIN users rpa ON rp.author_id = rpa.user_id
-        WHERE t.content LIKE ?
+        WHERE {where_clause}
         ORDER BY t.date DESC
-        LIMIT 50
+        LIMIT ? OFFSET ?
     """,
-        (f"%{query}%",),
+        params + [per_page, offset],
     )
 
     tweets = []
@@ -886,7 +994,19 @@ def search():
 
     conn.close()
 
-    return render_template("search.html", tweets=tweets, query=query)
+    # 生成分页信息
+    pagination = get_pagination_range(page, total_pages) if total_pages > 0 else None
+
+    return render_template(
+        "search.html",
+        tweets=tweets,
+        query=query,
+        year=year,
+        month=month,
+        page=page,
+        total_pages=total_pages,
+        pagination=pagination,
+    )
 
 
 @app.route("/stats")
