@@ -10,7 +10,7 @@ from flask_sqlalchemy import SQLAlchemy
 import sqlite3
 import json
 from pathlib import Path
-from datetime import datetime
+from datetime import datetime, timedelta
 import os
 import re
 from urllib.parse import urlparse
@@ -212,20 +212,19 @@ def format_date(date_str):
     try:
         dt = datetime.strptime(date_str, "%Y-%m-%d %H:%M:%S")
         now = datetime.now()
-        diff = now - dt
 
-        if diff.days > 365:
-            return f"{diff.days // 365}年前"
-        elif diff.days > 30:
-            return f"{diff.days // 30}个月前"
-        elif diff.days > 0:
-            return f"{diff.days}天前"
-        elif diff.seconds > 3600:
-            return f"{diff.seconds // 3600}小时前"
-        elif diff.seconds > 60:
-            return f"{diff.seconds // 60}分钟前"
+        # 如果是今天，显示时间
+        if dt.date() == now.date():
+            return dt.strftime("%H:%M")
+        # 如果是昨天，显示"昨天 时间"
+        elif dt.date() == (now.date() - timedelta(days=1)):
+            return f"昨天 {dt.strftime('%H:%M')}"
+        # 如果是今年，显示"月日 时间"
+        elif dt.year == now.year:
+            return dt.strftime("%m月%d日 %H:%M")
+        # 其他情况显示完整日期时间
         else:
-            return "刚刚"
+            return dt.strftime("%Y年%m月%d日 %H:%M")
     except:
         return date_str
 
