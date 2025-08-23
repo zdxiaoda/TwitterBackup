@@ -1202,12 +1202,29 @@ def api_translate():
 
         content = data.get("content", "")
         target_lang = data.get("target_lang", "zh")
+        translation_service = data.get("translation_service", "google")
+        api_key = data.get("api_key", "")
+        api_secret = data.get("api_secret", "")
+        api_url = data.get("api_url", "")
 
         if not content:
             return jsonify({"success": False, "error": "翻译内容为空"}), 400
 
+        if not api_key:
+            return jsonify({"success": False, "error": "API密钥未设置"}), 400
+
+        # 创建翻译服务实例
+        from translation_service import TranslationService
+
+        service = TranslationService(
+            service_type=translation_service,
+            api_key=api_key,
+            api_secret=api_secret,
+            api_url=api_url,
+        )
+
         # 执行翻译
-        result = translate_tweet_content(content, target_lang)
+        result = service.translate_tweet(content, target_lang)
 
         return jsonify(result)
 
@@ -1224,12 +1241,29 @@ def api_detect_language():
             return jsonify({"success": False, "error": "请求数据为空"}), 400
 
         content = data.get("content", "")
+        translation_service = data.get("translation_service", "google")
+        api_key = data.get("api_key", "")
+        api_secret = data.get("api_secret", "")
+        api_url = data.get("api_url", "")
 
         if not content:
             return jsonify({"success": False, "error": "检测内容为空"}), 400
 
+        if not api_key:
+            return jsonify({"success": False, "error": "API密钥未设置"}), 400
+
+        # 创建翻译服务实例
+        from translation_service import TranslationService
+
+        service = TranslationService(
+            service_type=translation_service,
+            api_key=api_key,
+            api_secret=api_secret,
+            api_url=api_url,
+        )
+
         # 执行语言检测
-        result = detect_tweet_language(content)
+        result = service.detect_language(content)
 
         return jsonify(result)
 
@@ -1241,7 +1275,10 @@ def api_detect_language():
 def api_supported_languages():
     """获取支持的语言列表"""
     try:
-        service = get_translation_service()
+        # 创建一个默认的翻译服务实例来获取支持的语言
+        from translation_service import TranslationService
+
+        service = TranslationService(service_type="google", api_key="dummy")
         languages = service.get_supported_languages()
         return jsonify({"success": True, "languages": languages})
 
