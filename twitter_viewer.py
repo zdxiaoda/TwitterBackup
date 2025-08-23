@@ -183,19 +183,46 @@ def process_tweet_data(tweet_dict):
 
         return re.sub(space_link_pattern, replace_space_link, content)
 
+    # 处理推文内容中的YouTube链接
+    def process_youtube_links(content):
+        if not content:
+            return content
+
+        # 使用一个更精确的正则表达式来匹配所有YouTube链接格式
+        youtube_pattern = r'(https?://(?:www\.)?(?:youtube\.com/(?:watch\?v=|embed/|v/)|youtu\.be/)([a-zA-Z0-9_-]+)(?:\?[^"\s]*)?)'
+
+        def replace_youtube_link(match):
+            full_url = match.group(1)
+            video_id = match.group(2)
+
+            # 直接返回HTML嵌入框架
+            return f'<div class="youtube-embed" style="margin-top: 10px;"><iframe width="100%" height="315" src="https://www.youtube.com/embed/{video_id}" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe></div>'
+
+        # 替换所有YouTube链接
+        content = re.sub(youtube_pattern, replace_youtube_link, content)
+
+        return content
+
     # 处理主推文内容
     if tweet_dict.get("content"):
         tweet_dict["content"] = process_space_links(tweet_dict["content"])
+        tweet_dict["content"] = process_youtube_links(tweet_dict["content"])
 
     # 处理回复推文内容
     if tweet_dict.get("reply_info") and tweet_dict["reply_info"].get("content"):
         tweet_dict["reply_info"]["content"] = process_space_links(
             tweet_dict["reply_info"]["content"]
         )
+        tweet_dict["reply_info"]["content"] = process_youtube_links(
+            tweet_dict["reply_info"]["content"]
+        )
 
     # 处理引用推文内容
     if tweet_dict.get("quote_info") and tweet_dict["quote_info"].get("content"):
         tweet_dict["quote_info"]["content"] = process_space_links(
+            tweet_dict["quote_info"]["content"]
+        )
+        tweet_dict["quote_info"]["content"] = process_youtube_links(
             tweet_dict["quote_info"]["content"]
         )
 
