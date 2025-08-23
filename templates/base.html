@@ -1461,6 +1461,7 @@
         color: var(--text-color);
         line-height: 1.5;
         font-size: 14px;
+        white-space: pre-wrap;
       }
 
       .original-content {
@@ -1989,8 +1990,12 @@
                       <i class="fas fa-times"></i>
                   </button>
               </div>
-              <div class="translation-text">${result.translated}</div>
+              <div class="translation-text"></div>
           `;
+        const textNode = resultElement.querySelector(".translation-text");
+        if (textNode) {
+          textNode.textContent = result.translated || "";
+        }
       }
 
       // 显示翻译错误
