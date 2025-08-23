@@ -1402,6 +1402,189 @@ def api_supported_languages():
         return jsonify({"success": False, "error": f"获取语言列表失败: {str(e)}"}), 500
 
 
+@app.route("/api/user/<int:user_id>/media")
+def api_user_media(user_id: int):
+    """获取用户媒体推文（后端筛选），返回HTML片段"""
+    try:
+        media_type = request.args.get("type", "all")  # all|images|videos
+        page = request.args.get("page", 1, type=int)
+        per_page = request.args.get("per_page", 20, type=int)
+
+        conn = get_db_connection()
+        cursor = conn.cursor()
+
+        # 基于 profile 页相同的查询，拿到该用户的所有推文（含相关信息）
+        cursor.execute(
+            """
+        SELECT 
+            t.*,
+            a.name as author_name,
+            a.nick as author_nick,
+            a.profile_image as author_avatar,
+            u.name as user_name,
+            u.nick as user_nick,
+            u.profile_image as user_avatar,
+            -- 相关推文信息
+            rt.content as retweet_content,
+            rt.author_id as retweet_author_id,
+            rt.user_id as retweet_user_id,
+            rt.media_files as retweet_media_files,
+            rta.name as retweet_author_name,
+            rta.nick as retweet_author_nick,
+            rta.profile_image as retweet_author_avatar,
+            qt.content as quote_content,
+            qt.author_id as quote_author_id,
+            qt.user_id as quote_user_id,
+            qt.media_files as quote_media_files,
+            qta.name as quote_author_name,
+            qta.nick as quote_author_nick,
+            qta.profile_image as quote_author_avatar,
+            rp.content as reply_content,
+            rp.author_id as reply_author_id,
+            rp.user_id as reply_user_id,
+            rp.media_files as reply_media_files,
+            rpa.name as reply_author_name,
+            rpa.nick as reply_author_nick,
+            rpa.profile_image as reply_author_avatar
+        FROM tweets t
+        LEFT JOIN users a ON t.author_id = a.user_id
+        LEFT JOIN users u ON t.user_id = u.user_id
+        LEFT JOIN tweets rt ON t.retweet_id = rt.tweet_id
+        LEFT JOIN users rta ON rt.author_id = rta.user_id
+        LEFT JOIN tweets qt ON t.quote_id = qt.tweet_id
+        LEFT JOIN users qta ON qt.author_id = qta.user_id
+        LEFT JOIN tweets rp ON t.reply_id = rp.tweet_id
+        LEFT JOIN users rpa ON rp.author_id = rpa.user_id
+        WHERE t.user_id = ? OR t.author_id = ?
+        ORDER BY t.date DESC
+        """,
+            (user_id, user_id),
+        )
+
+        all_rows = cursor.fetchall()
+        conn.close()
+
+        tweets = []
+        for row in all_rows:
+            tweet = dict(row)
+
+            # 解析媒体文件
+            if tweet.get("media_files"):
+                tweet["media_files"] = json.loads(tweet["media_files"]) or []
+            else:
+                tweet["media_files"] = []
+
+            # 解析hashtags
+            if tweet.get("hashtags"):
+                try:
+                    tweet["hashtags"] = json.loads(tweet["hashtags"]) or []
+                except Exception:
+                    tweet["hashtags"] = []
+            else:
+                tweet["hashtags"] = []
+
+            # 标记类型
+            tweet["is_retweet"] = tweet.get("retweet_id", 0) > 0
+            tweet["is_quote"] = tweet.get("quote_id", 0) > 0
+            tweet["is_reply"] = tweet.get("reply_id", 0) > 0
+
+            # 相关推文媒体
+            def parse_media_field(value):
+                if not value:
+                    return []
+                try:
+                    return json.loads(value) or []
+                except Exception:
+                    return []
+
+            if tweet["is_retweet"] and tweet.get("retweet_content") is not None:
+                tweet["retweet_info"] = {
+                    "content": tweet.get("retweet_content"),
+                    "author_id": tweet.get("retweet_author_id"),
+                    "user_id": tweet.get("retweet_user_id"),
+                    "author_name": tweet.get("retweet_author_name"),
+                    "author_nick": tweet.get("retweet_author_nick"),
+                    "author_avatar": tweet.get("retweet_author_avatar"),
+                    "media_files": parse_media_field(tweet.get("retweet_media_files")),
+                }
+
+            if tweet["is_quote"] and tweet.get("quote_content") is not None:
+                tweet["quote_info"] = {
+                    "content": tweet.get("quote_content"),
+                    "author_id": tweet.get("quote_author_id"),
+                    "user_id": tweet.get("quote_user_id"),
+                    "author_name": tweet.get("quote_author_name"),
+                    "author_nick": tweet.get("quote_author_nick"),
+                    "author_avatar": tweet.get("quote_author_avatar"),
+                    "media_files": parse_media_field(tweet.get("quote_media_files")),
+                }
+
+            if tweet["is_reply"] and tweet.get("reply_content") is not None:
+                tweet["reply_info"] = {
+                    "content": tweet.get("reply_content"),
+                    "author_id": tweet.get("reply_author_id"),
+                    "user_id": tweet.get("reply_user_id"),
+                    "author_name": tweet.get("reply_author_name"),
+                    "author_nick": tweet.get("reply_author_nick"),
+                    "author_avatar": tweet.get("reply_author_avatar"),
+                    "media_files": parse_media_field(tweet.get("reply_media_files")),
+                }
+
+            # 转换头像/横幅URL等
+            tweet = process_tweet_data(tweet)
+
+            tweets.append(tweet)
+
+        # 后端媒体筛选：按根推文媒体和 retweet/quote/reply 的媒体综合判断
+        def is_video(path: str) -> bool:
+            p = path.lower()
+            return (
+                p.endswith(".mp4")
+                or p.endswith(".mov")
+                or p.endswith(".avi")
+                or p.endswith(".mkv")
+                or p.endswith(".webm")
+            )
+
+        def match_tweet_media(tw: dict) -> bool:
+            media_paths = []
+            media_paths += tw.get("media_files", [])
+            if tw.get("retweet_info"):
+                media_paths += tw["retweet_info"].get("media_files", [])
+            if tw.get("quote_info"):
+                media_paths += tw["quote_info"].get("media_files", [])
+            if tw.get("reply_info"):
+                media_paths += tw["reply_info"].get("media_files", [])
+            if not media_paths:
+                return False
+            if media_type == "images":
+                return any(not is_video(p) for p in media_paths)
+            if media_type == "videos":
+                return any(is_video(p) for p in media_paths)
+            return True  # all
+
+        filtered = [tw for tw in tweets if match_tweet_media(tw)]
+
+        # 分页
+        start = (page - 1) * per_page
+        end = start + per_page
+        page_items = filtered[start:end]
+
+        # 渲染为HTML片段（复用宏）
+        from flask import render_template_string
+
+        html = render_template_string(
+            '{% from "tweet_conversation.html" import render_tweet_conversation %}'
+            "{% for t in tweets %}{{ render_tweet_conversation(t) }}{% endfor %}",
+            tweets=page_items,
+        )
+
+        return jsonify({"success": True, "html": html, "total": len(filtered)})
+
+    except Exception as e:
+        return jsonify({"success": False, "error": str(e)}), 500
+
+
 def main():
     """主函数"""
     import argparse

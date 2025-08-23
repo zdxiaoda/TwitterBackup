@@ -122,6 +122,17 @@ render_header %} {% from "components/navigation.html" import render_navigation
   <a href="#" class="nav-link" onclick="showLikes()">喜欢</a>
 </div>
 
+<div id="media-filters" class="media-filters" style="display: none">
+  <select
+    id="media-filter-select"
+    class="search-select"
+    onchange="applyMediaFilter(this.value)">
+    <option value="all">全部</option>
+    <option value="images">图片</option>
+    <option value="videos">视频</option>
+  </select>
+</div>
+
 <div id="tweets-container" class="tweets-container">
   {% for tweet in tweets %} {{ render_tweet_conversation(tweet) }} {% endfor %}
 </div>
@@ -167,30 +178,51 @@ user.user_id|string + "?") }} {% if tweets|length == 0 %}
   function showTweets() {
     hideAllContainers();
     document.getElementById("tweets-container").style.display = "block";
+    const filters = document.getElementById("media-filters");
+    if (filters) filters.style.display = "none";
     updateActiveNav("推文");
   }
 
   function showReplies() {
     hideAllContainers();
-    document.getElementById("replies-container").style.display = "block";
+    const container = document.getElementById("replies-container");
+    container.style.display = "block";
+    container.innerHTML = '<div class="empty"><p>No data</p></div>';
+    const filters = document.getElementById("media-filters");
+    if (filters) filters.style.display = "none";
     updateActiveNav("回复");
   }
 
   function showRetweets() {
     hideAllContainers();
-    document.getElementById("retweets-container").style.display = "block";
+    const container = document.getElementById("retweets-container");
+    container.style.display = "block";
+    container.innerHTML = '<div class="empty"><p>No data</p></div>';
+    const filters = document.getElementById("media-filters");
+    if (filters) filters.style.display = "none";
     updateActiveNav("转发");
   }
 
   function showMedia() {
     hideAllContainers();
     document.getElementById("media-container").style.display = "block";
+    const filters = document.getElementById("media-filters");
+    if (filters) {
+      filters.style.display = "flex";
+      const select = document.getElementById("media-filter-select");
+      if (select) select.value = "all";
+      applyMediaFilter("all");
+    }
     updateActiveNav("媒体");
   }
 
   function showLikes() {
     hideAllContainers();
-    document.getElementById("likes-container").style.display = "block";
+    const container = document.getElementById("likes-container");
+    container.style.display = "block";
+    container.innerHTML = '<div class="empty"><p>No data</p></div>';
+    const filters = document.getElementById("media-filters");
+    if (filters) filters.style.display = "none";
     updateActiveNav("喜欢");
   }
 
@@ -215,6 +247,38 @@ user.user_id|string + "?") }} {% if tweets|length == 0 %}
         link.classList.add("active");
       }
     });
+  }
+
+  async function applyMediaFilter(type) {
+    const container = document.getElementById("media-container");
+    container.innerHTML = '<div class="loading">加载中...</div>';
+    try {
+      const res = await fetch(
+        `/api/user/{{ user.user_id }}/media?type=${type}`
+      );
+      const data = await res.json();
+      if (data.success) {
+        if (data.total === 0) {
+          container.innerHTML = '<div class="empty"><p>No data</p></div>';
+        } else {
+          container.innerHTML = data.html;
+          // 立即为新插入的图片设置 src，避免懒加载观察器未重新绑定导致不显示
+          const mediaEls = container.querySelectorAll(".media-item img");
+          mediaEls.forEach((img) => {
+            if (img.dataset && img.dataset.src) {
+              img.src = img.dataset.src;
+              delete img.dataset.src;
+            }
+          });
+        }
+      } else {
+        container.innerHTML = `<div class="error">${
+          data.error || "加载失败"
+        }</div>`;
+      }
+    } catch (e) {
+      container.innerHTML = '<div class="error">网络错误</div>';
+    }
   }
 </script>
 {% endblock %}
