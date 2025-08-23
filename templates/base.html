@@ -726,6 +726,75 @@
         text-decoration: underline;
       }
 
+      /* 重构后的推文关系展示样式 */
+      .tweet-conversation {
+        border: 1px solid var(--border-color);
+        border-radius: 16px;
+        margin-bottom: 16px;
+        overflow: hidden;
+      }
+
+      .tweet-conversation .tweet {
+        border-bottom: 1px solid var(--border-color);
+        border-radius: 0;
+      }
+
+      .tweet-conversation .tweet:last-child {
+        border-bottom: none;
+      }
+
+      .tweet-conversation .tweet:first-child {
+        border-top-left-radius: 16px;
+        border-top-right-radius: 16px;
+      }
+
+      .tweet-conversation .tweet:last-child {
+        border-bottom-left-radius: 16px;
+        border-bottom-right-radius: 16px;
+      }
+
+      .conversation-indicator {
+        padding: 12px 16px;
+        background-color: var(--hover-bg-color);
+        border-bottom: 1px solid var(--border-color);
+        font-size: 14px;
+        color: var(--secondary-text-color);
+        font-family: "Source Han Sans CN", "Noto Sans CJK SC", "PingFang SC",
+          "Hiragino Sans GB", "Microsoft YaHei", sans-serif;
+        line-height: 20px;
+        overflow-wrap: break-word;
+        position: relative;
+        min-width: 0px;
+        text-align: inherit;
+        text-indent: 0;
+        font-weight: 400;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+      }
+
+      .conversation-indicator.reply {
+        border-left: 4px solid var(--reply-border-color);
+      }
+
+      .conversation-indicator.quote {
+        border-left: 4px solid var(--quote-border-color);
+      }
+
+      .conversation-indicator.retweet {
+        border-left: 4px solid var(--retweet-border-color);
+      }
+
+      .conversation-icon {
+        width: 16px;
+        height: 16px;
+        fill: currentColor;
+      }
+
+      .conversation-text {
+        font-weight: 500;
+      }
+
       /* Space链接样式 */
       .space-link {
         color: var(--space-link-color);

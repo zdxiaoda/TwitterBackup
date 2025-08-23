@@ -183,6 +183,27 @@ def process_tweet_data(tweet_dict):
         content = re.sub(space_link_pattern, replace_space_link, content)
         tweet_dict["content"] = content
 
+    # 处理相关推文的头像URL
+    if tweet_dict.get("retweet_info") and tweet_dict["retweet_info"].get(
+        "author_avatar"
+    ):
+        tweet_dict["retweet_info"]["author_avatar"] = convert_avatar_url_to_local(
+            tweet_dict["retweet_info"].get("author_id"),
+            tweet_dict["retweet_info"]["author_avatar"],
+        )
+
+    if tweet_dict.get("quote_info") and tweet_dict["quote_info"].get("author_avatar"):
+        tweet_dict["quote_info"]["author_avatar"] = convert_avatar_url_to_local(
+            tweet_dict["quote_info"].get("author_id"),
+            tweet_dict["quote_info"]["author_avatar"],
+        )
+
+    if tweet_dict.get("reply_info") and tweet_dict["reply_info"].get("author_avatar"):
+        tweet_dict["reply_info"]["author_avatar"] = convert_avatar_url_to_local(
+            tweet_dict["reply_info"].get("author_id"),
+            tweet_dict["reply_info"]["author_avatar"],
+        )
+
     return tweet_dict
 
 
@@ -254,18 +275,24 @@ def index():
             rt.content as retweet_content,
             rt.author_id as retweet_author_id,
             rt.user_id as retweet_user_id,
+            rt.media_files as retweet_media_files,
             rta.name as retweet_author_name,
             rta.nick as retweet_author_nick,
+            rta.profile_image as retweet_author_avatar,
             qt.content as quote_content,
             qt.author_id as quote_author_id,
             qt.user_id as quote_user_id,
+            qt.media_files as quote_media_files,
             qta.name as quote_author_name,
             qta.nick as quote_author_nick,
+            qta.profile_image as quote_author_avatar,
             rp.content as reply_content,
             rp.author_id as reply_author_id,
             rp.user_id as reply_user_id,
+            rp.media_files as reply_media_files,
             rpa.name as reply_author_name,
             rpa.nick as reply_author_nick,
+            rpa.profile_image as reply_author_avatar,
             rpu.name as reply_user_name,
             rpu.nick as reply_user_nick
         FROM tweets t
@@ -316,6 +343,7 @@ def index():
                 "user_id": tweet["retweet_user_id"],
                 "author_name": tweet.get("retweet_author_name"),
                 "author_nick": tweet.get("retweet_author_nick"),
+                "author_avatar": tweet.get("retweet_author_avatar"),
             }
 
         if tweet["is_quote"] and tweet.get("quote_content"):
@@ -325,6 +353,7 @@ def index():
                 "user_id": tweet["quote_user_id"],
                 "author_name": tweet.get("quote_author_name"),
                 "author_nick": tweet.get("quote_author_nick"),
+                "author_avatar": tweet.get("quote_author_avatar"),
             }
 
         if tweet["is_reply"] and tweet.get("reply_content"):
@@ -334,6 +363,7 @@ def index():
                 "user_id": tweet["reply_user_id"],
                 "author_name": tweet.get("reply_author_name"),
                 "author_nick": tweet.get("reply_author_nick"),
+                "author_avatar": tweet.get("reply_author_avatar"),
             }
 
         # 转换头像URL为本地路径
@@ -416,18 +446,24 @@ def user_profile(user_id):
             rt.content as retweet_content,
             rt.author_id as retweet_author_id,
             rt.user_id as retweet_user_id,
+            rt.media_files as retweet_media_files,
             rta.name as retweet_author_name,
             rta.nick as retweet_author_nick,
+            rta.profile_image as retweet_author_avatar,
             qt.content as quote_content,
             qt.author_id as quote_author_id,
             qt.user_id as quote_user_id,
+            qt.media_files as quote_media_files,
             qta.name as quote_author_name,
             qta.nick as quote_author_nick,
+            qta.profile_image as quote_author_avatar,
             rp.content as reply_content,
             rp.author_id as reply_author_id,
             rp.user_id as reply_user_id,
+            rp.media_files as reply_media_files,
             rpa.name as reply_author_name,
-            rpa.nick as reply_author_nick
+            rpa.nick as reply_author_nick,
+            rpa.profile_image as reply_author_avatar
         FROM tweets t
         LEFT JOIN users a ON t.author_id = a.user_id
         LEFT JOIN users u ON t.user_id = u.user_id
@@ -470,30 +506,51 @@ def user_profile(user_id):
 
         # 处理相关推文信息
         if tweet["is_retweet"] and tweet.get("retweet_content"):
+            # 解析转发推文的媒体文件
+            retweet_media_files = []
+            if tweet.get("retweet_media_files"):
+                retweet_media_files = json.loads(tweet["retweet_media_files"])
+
             tweet["retweet_info"] = {
                 "content": tweet["retweet_content"],
                 "author_id": tweet["retweet_author_id"],
                 "user_id": tweet["retweet_user_id"],
                 "author_name": tweet.get("retweet_author_name"),
                 "author_nick": tweet.get("retweet_author_nick"),
+                "author_avatar": tweet.get("retweet_author_avatar"),
+                "media_files": retweet_media_files,
             }
 
         if tweet["is_quote"] and tweet.get("quote_content"):
+            # 解析引用推文的媒体文件
+            quote_media_files = []
+            if tweet.get("quote_media_files"):
+                quote_media_files = json.loads(tweet["quote_media_files"])
+
             tweet["quote_info"] = {
                 "content": tweet["quote_content"],
                 "author_id": tweet["quote_author_id"],
                 "user_id": tweet["quote_user_id"],
                 "author_name": tweet.get("quote_author_name"),
                 "author_nick": tweet.get("quote_author_nick"),
+                "author_avatar": tweet.get("quote_author_avatar"),
+                "media_files": quote_media_files,
             }
 
         if tweet["is_reply"] and tweet.get("reply_content"):
+            # 解析回复推文的媒体文件
+            reply_media_files = []
+            if tweet.get("reply_media_files"):
+                reply_media_files = json.loads(tweet["reply_media_files"])
+
             tweet["reply_info"] = {
                 "content": tweet["reply_content"],
                 "author_id": tweet["reply_author_id"],
                 "user_id": tweet["reply_user_id"],
                 "author_name": tweet.get("reply_author_name"),
                 "author_nick": tweet.get("reply_author_nick"),
+                "author_avatar": tweet.get("reply_author_avatar"),
+                "media_files": reply_media_files,
             }
 
         # 转换头像URL为本地路径
@@ -539,18 +596,24 @@ def tweet_detail(tweet_id):
             rt.content as retweet_content,
             rt.author_id as retweet_author_id,
             rt.user_id as retweet_user_id,
+            rt.media_files as retweet_media_files,
             rta.name as retweet_author_name,
             rta.nick as retweet_author_nick,
+            rta.profile_image as retweet_author_avatar,
             qt.content as quote_content,
             qt.author_id as quote_author_id,
             qt.user_id as quote_user_id,
+            qt.media_files as quote_media_files,
             qta.name as quote_author_name,
             qta.nick as quote_author_nick,
+            qta.profile_image as quote_author_avatar,
             rp.content as reply_content,
             rp.author_id as reply_author_id,
             rp.user_id as reply_user_id,
+            rp.media_files as reply_media_files,
             rpa.name as reply_author_name,
-            rpa.nick as reply_author_nick
+            rpa.nick as reply_author_nick,
+            rpa.profile_image as reply_author_avatar
         FROM tweets t
         LEFT JOIN users a ON t.author_id = a.user_id
         LEFT JOIN users u ON t.user_id = u.user_id
@@ -594,30 +657,51 @@ def tweet_detail(tweet_id):
 
     # 处理相关推文信息
     if tweet["is_retweet"] and tweet.get("retweet_content"):
+        # 解析转发推文的媒体文件
+        retweet_media_files = []
+        if tweet.get("retweet_media_files"):
+            retweet_media_files = json.loads(tweet["retweet_media_files"])
+
         tweet["retweet_info"] = {
             "content": tweet["retweet_content"],
             "author_id": tweet["retweet_author_id"],
             "user_id": tweet["retweet_user_id"],
             "author_name": tweet.get("retweet_author_name"),
             "author_nick": tweet.get("retweet_author_nick"),
+            "author_avatar": tweet.get("retweet_author_avatar"),
+            "media_files": retweet_media_files,
         }
 
     if tweet["is_quote"] and tweet.get("quote_content"):
+        # 解析引用推文的媒体文件
+        quote_media_files = []
+        if tweet.get("quote_media_files"):
+            quote_media_files = json.loads(tweet["quote_media_files"])
+
         tweet["quote_info"] = {
             "content": tweet["quote_content"],
             "author_id": tweet["quote_author_id"],
             "user_id": tweet["quote_user_id"],
             "author_name": tweet.get("quote_author_name"),
             "author_nick": tweet.get("quote_author_nick"),
+            "author_avatar": tweet.get("quote_author_avatar"),
+            "media_files": quote_media_files,
         }
 
     if tweet["is_reply"] and tweet.get("reply_content"):
+        # 解析回复推文的媒体文件
+        reply_media_files = []
+        if tweet.get("reply_media_files"):
+            reply_media_files = json.loads(tweet["reply_media_files"])
+
         tweet["reply_info"] = {
             "content": tweet["reply_content"],
             "author_id": tweet["reply_author_id"],
             "user_id": tweet["reply_user_id"],
             "author_name": tweet.get("reply_author_name"),
             "author_nick": tweet.get("reply_author_nick"),
+            "author_avatar": tweet.get("reply_author_avatar"),
+            "media_files": reply_media_files,
         }
 
     # 转换头像URL为本地路径
@@ -689,18 +773,24 @@ def search():
             rt.content as retweet_content,
             rt.author_id as retweet_author_id,
             rt.user_id as retweet_user_id,
+            rt.media_files as retweet_media_files,
             rta.name as retweet_author_name,
             rta.nick as retweet_author_nick,
+            rta.profile_image as retweet_author_avatar,
             qt.content as quote_content,
             qt.author_id as quote_author_id,
             qt.user_id as quote_user_id,
+            qt.media_files as quote_media_files,
             qta.name as quote_author_name,
             qta.nick as quote_author_nick,
+            qta.profile_image as quote_author_avatar,
             rp.content as reply_content,
             rp.author_id as reply_author_id,
             rp.user_id as reply_user_id,
+            rp.media_files as reply_media_files,
             rpa.name as reply_author_name,
-            rpa.nick as reply_author_nick
+            rpa.nick as reply_author_nick,
+            rpa.profile_image as reply_author_avatar
         FROM tweets t
         LEFT JOIN users a ON t.author_id = a.user_id
         LEFT JOIN users u ON t.user_id = u.user_id
@@ -743,30 +833,51 @@ def search():
 
         # 处理相关推文信息
         if tweet["is_retweet"] and tweet.get("retweet_content"):
+            # 解析转发推文的媒体文件
+            retweet_media_files = []
+            if tweet.get("retweet_media_files"):
+                retweet_media_files = json.loads(tweet["retweet_media_files"])
+
             tweet["retweet_info"] = {
                 "content": tweet["retweet_content"],
                 "author_id": tweet["retweet_author_id"],
                 "user_id": tweet["retweet_user_id"],
                 "author_name": tweet.get("retweet_author_name"),
                 "author_nick": tweet.get("retweet_author_nick"),
+                "author_avatar": tweet.get("retweet_author_avatar"),
+                "media_files": retweet_media_files,
             }
 
         if tweet["is_quote"] and tweet.get("quote_content"):
+            # 解析引用推文的媒体文件
+            quote_media_files = []
+            if tweet.get("quote_media_files"):
+                quote_media_files = json.loads(tweet["quote_media_files"])
+
             tweet["quote_info"] = {
                 "content": tweet["quote_content"],
                 "author_id": tweet["quote_author_id"],
                 "user_id": tweet["quote_user_id"],
                 "author_name": tweet.get("quote_author_name"),
                 "author_nick": tweet.get("quote_author_nick"),
+                "author_avatar": tweet.get("quote_author_avatar"),
+                "media_files": quote_media_files,
             }
 
         if tweet["is_reply"] and tweet.get("reply_content"):
+            # 解析回复推文的媒体文件
+            reply_media_files = []
+            if tweet.get("reply_media_files"):
+                reply_media_files = json.loads(tweet["reply_media_files"])
+
             tweet["reply_info"] = {
                 "content": tweet["reply_content"],
                 "author_id": tweet["reply_author_id"],
                 "user_id": tweet["reply_user_id"],
                 "author_name": tweet.get("reply_author_name"),
                 "author_nick": tweet.get("reply_author_nick"),
+                "author_avatar": tweet.get("reply_author_avatar"),
+                "media_files": reply_media_files,
             }
 
         # 转换头像URL为本地路径
