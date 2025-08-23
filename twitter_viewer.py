@@ -32,8 +32,9 @@ def init_app(db_path):
     if not DB_PATH.exists():
         raise FileNotFoundError(f"数据库文件不存在: {DB_PATH}")
 
-    # 设置静态文件路径
-    app.static_folder = str(DATA_ROOT)
+    # 设置静态文件路径为项目根目录
+    project_root = Path(__file__).parent
+    app.static_folder = str(project_root / "static")
 
     # 添加头像文件夹的静态文件路由
     @app.route("/avatar/<path:filename>")
@@ -48,6 +49,8 @@ def init_app(db_path):
         """提供媒体文件访问"""
         media_dir = DATA_ROOT / "img"
         return send_from_directory(str(media_dir), filename)
+
+    # 删除自定义的static/css路由，让Flask自动处理
 
 
 def get_db_connection():

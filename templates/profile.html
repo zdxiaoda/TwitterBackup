@@ -1,7 +1,7 @@
 {% extends "base.html" %} {% from "tweet_conversation.html" import
 render_tweet_conversation %} {% from "base.html" import render_pagination %} {%
-block title %}{{ user.name }} (@{{ user.nick }}) - LocalTwitter{% endblock
-%} {% block content %}
+block title %}{{ user.name }} (@{{ user.nick }}) - LocalTwitter{% endblock %} {%
+block content %}
 <div class="profile-header">
   {% if user.profile_banner %}
   <img class="profile-banner" src="{{ user.profile_banner }}" alt="Banner" />
@@ -96,6 +96,18 @@ block title %}{{ user.name }} (@{{ user.nick }}) - LocalTwitter{% endblock
   </div>
 </div>
 
+<div class="header">
+  <div class="header-left">
+    <button class="back-button" onclick="goBack()">
+      <i class="fas fa-arrow-left"></i>
+    </button>
+    <h1>用户主页</h1>
+  </div>
+  <button id="theme-toggle" class="theme-toggle">
+    <i class="fas fa-sun"></i>
+  </button>
+</div>
+
 <div class="nav">
   <a href="#" class="active">推文</a>
   <a href="#">媒体</a>
@@ -111,4 +123,18 @@ user.user_id|string + "?") }} {% if tweets|length == 0 %}
 <div class="empty">
   <p>该用户暂无推文</p>
 </div>
-{% endif %} {% endblock %}
+{% endif %}
+
+<script>
+  function goBack() {
+    if (
+      document.referrer &&
+      document.referrer.includes(window.location.origin)
+    ) {
+      window.history.back();
+    } else {
+      window.location.href = "/";
+    }
+  }
+</script>
+{% endblock %}
