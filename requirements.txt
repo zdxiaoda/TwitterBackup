@@ -1,0 +1,4 @@
+requests>=2.25.1
+pathlib2>=2.3.5
+streamlit>=1.28.0
+pandas>=1.5.0
