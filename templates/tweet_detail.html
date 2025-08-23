@@ -32,11 +32,15 @@ render_tweet_conversation %} {% block title %}推文详情 - LocalTwitter{% endb
   {% for tweet in related_tweets %}
   <div class="tweet" data-tweet-id="{{ tweet.tweet_id }}">
     <div class="tweet-header">
-      <img
-        class="avatar"
-        src="{{ tweet.author_avatar if tweet.author_avatar else tweet.user_avatar }}"
-        onerror="this.src='data:image/svg+xml,%3Csvg xmlns=\'http://www.w3.org/2000/svg\' width=\'48\' height=\'48\' viewBox=\'0 0 48 48\'%3E%3Ccircle cx=\'24\' cy=\'24\' r=\'24\' fill=\'%23657786\'/%3E%3C/svg%3E'"
-        alt="Avatar" />
+      <a
+        href="/user/{{ tweet.author_id if tweet.author_id else tweet.user_id }}"
+        class="avatar-link">
+        <img
+          class="avatar"
+          src="{{ tweet.author_avatar if tweet.author_avatar else tweet.user_avatar }}"
+          onerror="this.src='data:image/svg+xml,%3Csvg xmlns=\'http://www.w3.org/2000/svg\' width=\'48\' height=\'48\' viewBox=\'0 0 48 48\'%3E%3Ccircle cx=\'24\' cy=\'24\' r=\'24\' fill=\'%23657786\'/%3E%3C/svg%3E'"
+          alt="Avatar" />
+      </a>
       <div class="tweet-info">
         <div class="tweet-author">
           <span class="name"

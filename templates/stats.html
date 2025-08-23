@@ -56,11 +56,13 @@ block content %}
   <div
     class="user-card"
     onclick="window.location.href='/user/{{ user.user_id }}'">
-    <img
-      class="avatar"
-      src="{{ user.profile_image }}"
-      onerror="this.src='data:image/svg+xml,%3Csvg xmlns=\'http://www.w3.org/2000/svg\' width=\'48\' height=\'48\' viewBox=\'0 0 48 48\'%3E%3Ccircle cx=\'24\' cy=\'24\' r=\'24\' fill=\'%23657786\'/%3E%3C/svg%3E'"
-      alt="Avatar" />
+    <a href="/user/{{ user.user_id }}" class="avatar-link">
+      <img
+        class="avatar"
+        src="{{ user.profile_image }}"
+        onerror="this.src='data:image/svg+xml,%3Csvg xmlns=\'http://www.w3.org/2000/svg\' width=\'48\' height=\'48\' viewBox=\'0 0 48 48\'%3E%3Ccircle cx=\'24\' cy=\'24\' r=\'24\' fill=\'%23657786\'/%3E%3C/svg%3E'"
+        alt="Avatar" />
+    </a>
     <div class="user-info">
       <div class="name">{{ user.name }}</div>
       <div class="username">@{{ user.nick }}</div>
@@ -78,11 +80,13 @@ block content %}
   {% for tweet in stats.top_tweets %}
   <div class="tweet" data-tweet-id="{{ tweet.tweet_id }}">
     <div class="tweet-header">
-      <img
-        class="avatar"
-        src="{{ tweet.user_avatar }}"
-        onerror="this.src='data:image/svg+xml,%3Csvg xmlns=\'http://www.w3.org/2000/svg\' width=\'48\' height=\'48\' viewBox=\'0 0 48 48\'%3E%3Ccircle cx=\'24\' cy=\'24\' r=\'24\' fill=\'%23657786\'/%3E%3C/svg%3E'"
-        alt="Avatar" />
+      <a href="/user/{{ tweet.user_id }}" class="avatar-link">
+        <img
+          class="avatar"
+          src="{{ tweet.user_avatar }}"
+          onerror="this.src='data:image/svg+xml,%3Csvg xmlns=\'http://www.w3.org/2000/svg\' width=\'48\' height=\'48\' viewBox=\'0 0 48 48\'%3E%3Ccircle cx=\'24\' cy=\'24\' r=\'24\' fill=\'%23657786\'/%3E%3C/svg%3E'"
+          alt="Avatar" />
+      </a>
       <div class="tweet-info">
         <div class="tweet-author">
           <span class="name">{{ tweet.user_name }}</span>
