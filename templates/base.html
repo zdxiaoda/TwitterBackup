@@ -1333,11 +1333,13 @@
       document.querySelectorAll(".tweet").forEach((tweet) => {
         tweet.addEventListener("click", function (e) {
           // 检查是否点击了链接、翻译按钮、语言选择器或其他交互元素
-          if (!e.target.closest("a") && 
-              !e.target.closest(".translate-btn") && 
-              !e.target.closest(".target-language") &&
-              !e.target.closest(".close-translation") &&
-              !e.target.closest(".translation-controls")) {
+          if (
+            !e.target.closest("a") &&
+            !e.target.closest(".translate-btn") &&
+            !e.target.closest(".target-language") &&
+            !e.target.closest(".close-translation") &&
+            !e.target.closest(".translation-controls")
+          ) {
             const tweetId = this.dataset.tweetId;
             if (tweetId) {
               window.location.href = `/tweet/${tweetId}`;
