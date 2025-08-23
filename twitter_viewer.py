@@ -202,20 +202,31 @@ def process_tweet_data(tweet_dict):
                 tweet_dict["quoted_info"]["author_avatar"],
             )
 
-    # 处理媒体文件路径
-    if tweet_dict.get("media_files"):
-        processed_media_files = []
-        for media_file in tweet_dict["media_files"]:
-            # 清理路径，移除开头的斜杠
+    # 处理媒体文件路径（主推文与子对象）
+    def _normalize_media_list(media_list):
+        normalized = []
+        for media_file in media_list or []:
             clean_path = media_file.lstrip("/")
+            normalized.append(
+                clean_path if clean_path.startswith("img/") else f"img/{clean_path}"
+            )
+        return normalized
 
-            # 如果媒体文件路径已经是相对路径（img/filename），直接使用
-            if clean_path.startswith("img/"):
-                processed_media_files.append(clean_path)
-            else:
-                # 否则假设是文件名，添加img/前缀
-                processed_media_files.append(f"img/{clean_path}")
-        tweet_dict["media_files"] = processed_media_files
+    if tweet_dict.get("media_files"):
+        tweet_dict["media_files"] = _normalize_media_list(tweet_dict["media_files"])
+
+    # 同步规范子对象（引用/被引用/回复/被回复/转发）的媒体文件路径
+    for related_key in [
+        "quote_info",
+        "quoted_info",
+        "reply_info",
+        "replied_info",
+        "retweet_info",
+    ]:
+        if tweet_dict.get(related_key) and tweet_dict[related_key].get("media_files"):
+            tweet_dict[related_key]["media_files"] = _normalize_media_list(
+                tweet_dict[related_key]["media_files"]
+            )
 
     # 处理推文内容中的Space链接
     def process_space_links(content):
