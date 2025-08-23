@@ -2,6 +2,23 @@
 render_tweet_conversation %} {% from "base.html" import render_pagination %} {%
 block title %}{{ user.name }} (@{{ user.nick }}) - LocalTwitter{% endblock %} {%
 block content %}
+<div class="header">
+  <div class="header-left">
+    <button class="back-button" onclick="goBack()">
+      <i class="fas fa-arrow-left"></i>
+    </button>
+    <h1>用户主页</h1>
+  </div>
+  <div style="display: flex; align-items: center">
+    <button id="theme-toggle" class="theme-toggle">
+      <i class="fas fa-sun"></i>
+    </button>
+    <button class="settings-toggle" id="settings-toggle">
+      <i class="fas fa-cog"></i>
+    </button>
+  </div>
+</div>
+
 <div class="profile-header">
   {% if user.profile_banner %}
   <img class="profile-banner" src="{{ user.profile_banner }}" alt="Banner" />
@@ -93,23 +110,6 @@ block content %}
     <div class="profile-stat">
       <strong>{{ user.friends_count|format_number }}</strong> 正在关注
     </div>
-  </div>
-</div>
-
-<div class="header">
-  <div class="header-left">
-    <button class="back-button" onclick="goBack()">
-      <i class="fas fa-arrow-left"></i>
-    </button>
-    <h1>用户主页</h1>
-  </div>
-  <div style="display: flex; align-items: center">
-    <button id="theme-toggle" class="theme-toggle">
-      <i class="fas fa-sun"></i>
-    </button>
-    <button class="settings-toggle" id="settings-toggle">
-      <i class="fas fa-cog"></i>
-    </button>
   </div>
 </div>
 
