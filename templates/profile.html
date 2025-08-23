@@ -6,7 +6,13 @@ Twitter 备份查看器{% endblock %} {% block content %}
   {% else %}
   <div
     class="profile-banner"
-    style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%)"></div>
+    style="
+      background: linear-gradient(
+        135deg,
+        var(--link-color) 0%,
+        var(--secondary-text-color) 100%
+      );
+    "></div>
   {% endif %}
 </div>
 
@@ -23,7 +29,7 @@ Twitter 备份查看器{% endblock %} {% block content %}
   {% if user.description %}
   <div class="profile-bio">{{ user.description }}</div>
   {% endif %} {% if user.location %}
-  <div style="color: #71767b; margin-bottom: 8px">
+  <div style="color: var(--secondary-text-color); margin-bottom: 8px">
     <svg
       style="
         width: 16px;
@@ -40,7 +46,7 @@ Twitter 备份查看器{% endblock %} {% block content %}
     {{ user.location }}
   </div>
   {% endif %} {% if user.url %}
-  <div style="color: #71767b; margin-bottom: 8px">
+  <div style="color: var(--secondary-text-color); margin-bottom: 8px">
     <svg
       style="
         width: 16px;
@@ -54,13 +60,13 @@ Twitter 备份查看器{% endblock %} {% block content %}
       <path
         d="M7.27 22.054c-1.61 0-3.197-.735-4.194-2.086-.83-1.127-1.175-2.51-.967-3.895s.943-2.605 2.07-3.438l1.48-1.094c.334-.246.805-.175 1.05.158s.177.804-.157 1.05l-1.48 1.095c-.803.592-1.327 1.463-1.476 2.45-.148.988.098 1.975.69 2.778 1.225 1.657 3.57 2.01 5.23.785l3.528-2.608c1.658-1.225 2.01-3.57.785-5.23-.498-.674-1.187-1.15-1.992-1.376-.4-.113-.633-.527-.52-.927.112-.4.528-.63.926-.522 1.13.318 2.096.986 2.794 1.932 1.717 2.324 1.224 5.612-1.1 7.33l-3.53 2.608c-.933.693-2.023 1.026-3.105 1.026z" />
     </svg>
-    <a href="{{ user.url }}" target="_blank" style="color: #1d9bf0"
+    <a href="{{ user.url }}" target="_blank" style="color: var(--link-color)"
       >{{ user.url }}</a
     >
   </div>
   {% endif %}
 
-  <div style="color: #71767b; margin-bottom: 12px">
+  <div style="color: var(--secondary-text-color); margin-bottom: 12px">
     <svg
       style="
         width: 16px;

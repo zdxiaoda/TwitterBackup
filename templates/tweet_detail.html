@@ -139,8 +139,8 @@ endblock %} {% block content %}
 </div>
 
 {% if related_tweets %}
-<div style="padding: 16px; border-top: 1px solid #2f3336">
-  <h2 style="margin-bottom: 16px; color: #e7e9ea">相关推文</h2>
+<div style="padding: 16px; border-top: 1px solid var(--border-color)">
+  <h2 style="margin-bottom: 16px; color: var(--text-color)">相关推文</h2>
   {% for tweet in related_tweets %}
   <div class="tweet" data-tweet-id="{{ tweet.tweet_id }}">
     <div class="tweet-header">

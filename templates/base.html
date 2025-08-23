@@ -19,6 +19,14 @@
         --reply-border-color: #1d9bf0;
         --quote-border-color: #00ba7c;
         --retweet-border-color: #00ba7c;
+        --default-avatar-color: #657786;
+        --error-color: #f4212e;
+        --success-color: #00ba7c;
+        --space-link-color: #1d9bf0;
+        --foreground: 0 0% 100%;
+        --background: 0 0% 0%;
+        --color-gray-200: 220 13% 91%;
+        --color-blue-500: 217 91% 60%;
       }
 
       body.light-mode {
@@ -32,6 +40,14 @@
         --reply-border-color: #1d9bf0;
         --quote-border-color: #00ba7c;
         --retweet-border-color: #00ba7c;
+        --default-avatar-color: #536471;
+        --error-color: #f4212e;
+        --success-color: #00ba7c;
+        --space-link-color: #1da1f2;
+        --foreground: 220 13% 9%;
+        --background: 0 0% 100%;
+        --color-gray-200: 220 13% 91%;
+        --color-blue-500: 217 91% 60%;
       }
 
       body.light-mode .header {
@@ -42,15 +58,77 @@
         margin: 0;
         padding: 0;
         box-sizing: border-box;
+        border-width: 0;
+        border-style: solid;
+        border-color: hsl(var(--color-gray-200));
+      }
+
+      *,
+      ::before,
+      ::after {
+        --tw-border-spacing-x: 0;
+        --tw-border-spacing-y: 0;
+        --tw-translate-x: 0;
+        --tw-translate-y: 0;
+        --tw-rotate: 0;
+        --tw-skew-x: 0;
+        --tw-skew-y: 0;
+        --tw-scale-x: 1;
+        --tw-scale-y: 1;
+        --tw-pan-x: ;
+        --tw-pan-y: ;
+        --tw-pinch-zoom: ;
+        --tw-scroll-snap-strictness: proximity;
+        --tw-gradient-from-position: ;
+        --tw-gradient-via-position: ;
+        --tw-gradient-to-position: ;
+        --tw-ordinal: ;
+        --tw-slashed-zero: ;
+        --tw-numeric-figure: ;
+        --tw-numeric-spacing: ;
+        --tw-numeric-fraction: ;
+        --tw-ring-inset: ;
+        --tw-ring-offset-width: 0px;
+        --tw-ring-offset-color: #fff;
+        --tw-ring-color: hsl(var(--color-blue-500) / 0.5);
+        --tw-ring-offset-shadow: 0 0 #0000;
+        --tw-ring-shadow: 0 0 #0000;
+        --tw-shadow: 0 0 #0000;
+        --tw-shadow-colored: 0 0 #0000;
+        --tw-blur: ;
+        --tw-brightness: ;
+        --tw-contrast: ;
+        --tw-grayscale: ;
+        --tw-hue-rotate: ;
+        --tw-invert: ;
+        --tw-saturate: ;
+        --tw-sepia: ;
+        --tw-drop-shadow: ;
+        --tw-backdrop-blur: ;
+        --tw-backdrop-brightness: ;
+        --tw-backdrop-contrast: ;
+        --tw-backdrop-grayscale: ;
+        --tw-backdrop-hue-rotate: ;
+        --tw-backdrop-invert: ;
+        --tw-backdrop-opacity: ;
+        --tw-backdrop-saturate: ;
+        --tw-backdrop-sepia: ;
+        --tw-contain-size: ;
+        --tw-contain-layout: ;
+        --tw-contain-paint: ;
+        --tw-contain-style: ;
       }
 
       body {
-        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
-          Helvetica, Arial, sans-serif;
+        font-family: "Source Han Sans CN", "Noto Sans CJK SC", "PingFang SC",
+          "Hiragino Sans GB", "Microsoft YaHei", sans-serif;
         background-color: var(--bg-color);
-        color: var(--text-color);
-        line-height: 1.5;
+        color: hsl(var(--foreground));
+        line-height: inherit;
         transition: background-color 0.3s ease, color 0.3s ease;
+        font-size: 15px;
+        color-scheme: light;
+        --tw-bg-base: hsl(var(--background));
       }
 
       .container {
@@ -78,6 +156,14 @@
       .header h1 {
         font-size: 20px;
         font-weight: 700;
+        font-family: "Source Han Sans CN", "Noto Sans CJK SC", "PingFang SC",
+          "Hiragino Sans GB", "Microsoft YaHei", sans-serif;
+        line-height: 20px;
+        overflow-wrap: break-word;
+        position: relative;
+        min-width: 0px;
+        text-align: inherit;
+        text-indent: 0;
       }
 
       .nav {
@@ -93,6 +179,15 @@
         text-decoration: none;
         font-weight: 500;
         transition: background-color 0.2s;
+        font-family: "Source Han Sans CN", "Noto Sans CJK SC", "PingFang SC",
+          "Hiragino Sans GB", "Microsoft YaHei", sans-serif;
+        line-height: 20px;
+        overflow-wrap: break-word;
+        position: relative;
+        min-width: 0px;
+        font-size: 15px;
+        text-align: inherit;
+        text-indent: 0;
       }
 
       .nav a:hover {
@@ -142,15 +237,44 @@
       .name {
         font-weight: 700;
         color: var(--text-color);
+        font-family: "Source Han Sans CN", "Noto Sans CJK SC", "PingFang SC",
+          "Hiragino Sans GB", "Microsoft YaHei", sans-serif;
+        line-height: 20px;
+        overflow-wrap: break-word;
+        position: relative;
+        min-width: 0px;
+        font-size: 15px;
+        text-align: inherit;
+        text-indent: 0;
       }
 
       .username {
         color: var(--secondary-text-color);
+        font-family: "Source Han Sans CN", "Noto Sans CJK SC", "PingFang SC",
+          "Hiragino Sans GB", "Microsoft YaHei", sans-serif;
+        line-height: 20px;
+        overflow-wrap: break-word;
+        position: relative;
+        min-width: 0px;
+        font-size: 15px;
+        text-align: inherit;
+        text-indent: 0;
+        font-weight: 400;
       }
 
       .date {
         color: var(--secondary-text-color);
         margin-left: 4px;
+        font-family: "Source Han Sans CN", "Noto Sans CJK SC", "PingFang SC",
+          "Hiragino Sans GB", "Microsoft YaHei", sans-serif;
+        line-height: 20px;
+        overflow-wrap: break-word;
+        position: relative;
+        min-width: 0px;
+        font-size: 15px;
+        text-align: inherit;
+        text-indent: 0;
+        font-weight: 400;
       }
 
       .retweet-info {
@@ -160,6 +284,15 @@
         display: flex;
         align-items: center;
         gap: 4px;
+        font-family: "Source Han Sans CN", "Noto Sans CJK SC", "PingFang SC",
+          "Hiragino Sans GB", "Microsoft YaHei", sans-serif;
+        line-height: 20px;
+        overflow-wrap: break-word;
+        position: relative;
+        min-width: 0px;
+        text-align: inherit;
+        text-indent: 0;
+        font-weight: 400;
       }
 
       .retweet-icon {
@@ -170,8 +303,17 @@
 
       .tweet-content {
         margin-left: 60px;
-        white-space: pre-wrap;
-        word-wrap: break-word;
+        white-space: pre-line;
+        overflow-wrap: break-word;
+        font-size: 15px;
+        line-height: 20px;
+        font-weight: 400;
+        text-align: inherit;
+        text-indent: 0;
+        min-width: 0px;
+        position: relative;
+        font-family: "Source Han Sans CN", "Noto Sans CJK SC", "PingFang SC",
+          "Hiragino Sans GB", "Microsoft YaHei", sans-serif;
       }
 
       .tweet-media {
@@ -201,7 +343,7 @@
 
       .media-item {
         position: relative;
-        background-color: #16181c;
+        background-color: var(--border-color);
         overflow: hidden;
       }
 
@@ -234,6 +376,15 @@
         gap: 32px;
         color: var(--secondary-text-color);
         font-size: 13px;
+        font-family: "Source Han Sans CN", "Noto Sans CJK SC", "PingFang SC",
+          "Hiragino Sans GB", "Microsoft YaHei", sans-serif;
+        line-height: 20px;
+        overflow-wrap: break-word;
+        position: relative;
+        min-width: 0px;
+        text-align: inherit;
+        text-indent: 0;
+        font-weight: 400;
       }
 
       .stat {
@@ -267,6 +418,15 @@
         border-radius: 9999px;
         color: var(--text-color);
         font-size: 15px;
+        font-family: "Source Han Sans CN", "Noto Sans CJK SC", "PingFang SC",
+          "Hiragino Sans GB", "Microsoft YaHei", sans-serif;
+        line-height: 20px;
+        overflow-wrap: break-word;
+        position: relative;
+        min-width: 0px;
+        text-align: inherit;
+        text-indent: 0;
+        font-weight: 400;
       }
 
       .search-input:focus {
@@ -279,13 +439,13 @@
         display: flex;
         align-items: center;
         padding: 12px 16px;
-        border-bottom: 1px solid #2f3336;
+        border-bottom: 1px solid var(--border-color);
         cursor: pointer;
         transition: background-color 0.2s;
       }
 
       .user-card:hover {
-        background-color: #080808;
+        background-color: var(--hover-bg-color);
       }
 
       .user-info {
@@ -299,6 +459,15 @@
         margin-top: 4px;
         font-size: 14px;
         color: var(--secondary-text-color);
+        font-family: "Source Han Sans CN", "Noto Sans CJK SC", "PingFang SC",
+          "Hiragino Sans GB", "Microsoft YaHei", sans-serif;
+        line-height: 20px;
+        overflow-wrap: break-word;
+        position: relative;
+        min-width: 0px;
+        text-align: inherit;
+        text-indent: 0;
+        font-weight: 400;
       }
 
       .pagination {
@@ -323,7 +492,7 @@
 
       .pagination .current {
         background-color: var(--link-color);
-        color: #fff;
+        color: var(--card-bg-color);
       }
 
       .stats-grid {
@@ -344,11 +513,29 @@
         font-size: 28px;
         font-weight: 700;
         color: var(--text-color);
+        font-family: "Source Han Sans CN", "Noto Sans CJK SC", "PingFang SC",
+          "Hiragino Sans GB", "Microsoft YaHei", sans-serif;
+        line-height: 20px;
+        overflow-wrap: break-word;
+        position: relative;
+        min-width: 0px;
+        text-align: inherit;
+        text-indent: 0;
       }
 
       .stat-label {
         color: var(--secondary-text-color);
         margin-top: 4px;
+        font-family: "Source Han Sans CN", "Noto Sans CJK SC", "PingFang SC",
+          "Hiragino Sans GB", "Microsoft YaHei", sans-serif;
+        line-height: 20px;
+        overflow-wrap: break-word;
+        position: relative;
+        min-width: 0px;
+        font-size: 15px;
+        text-align: inherit;
+        text-indent: 0;
+        font-weight: 400;
       }
 
       .profile-header {
@@ -372,7 +559,7 @@
         width: 120px;
         height: 120px;
         border-radius: 50%;
-        border: 4px solid #000;
+        border: 4px solid var(--bg-color);
         margin-bottom: 16px;
         position: absolute;
         top: -60px;
@@ -384,30 +571,90 @@
         font-size: 20px;
         font-weight: 700;
         margin-bottom: 4px;
+        font-family: "Source Han Sans CN", "Noto Sans CJK SC", "PingFang SC",
+          "Hiragino Sans GB", "Microsoft YaHei", sans-serif;
+        line-height: 20px;
+        overflow-wrap: break-word;
+        position: relative;
+        min-width: 0px;
+        text-align: inherit;
+        text-indent: 0;
       }
 
       .profile-username {
         color: var(--secondary-text-color);
         margin-bottom: 12px;
+        font-family: "Source Han Sans CN", "Noto Sans CJK SC", "PingFang SC",
+          "Hiragino Sans GB", "Microsoft YaHei", sans-serif;
+        line-height: 20px;
+        overflow-wrap: break-word;
+        position: relative;
+        min-width: 0px;
+        font-size: 15px;
+        text-align: inherit;
+        text-indent: 0;
+        font-weight: 400;
       }
 
       .profile-bio {
         margin-bottom: 12px;
+        font-family: "Source Han Sans CN", "Noto Sans CJK SC", "PingFang SC",
+          "Hiragino Sans GB", "Microsoft YaHei", sans-serif;
+        line-height: 20px;
+        overflow-wrap: break-word;
+        position: relative;
+        min-width: 0px;
+        font-size: 15px;
+        text-align: inherit;
+        text-indent: 0;
+        font-weight: 400;
       }
 
       .profile-stats {
         display: flex;
         gap: 24px;
         color: var(--secondary-text-color);
+        font-family: "Source Han Sans CN", "Noto Sans CJK SC", "PingFang SC",
+          "Hiragino Sans GB", "Microsoft YaHei", sans-serif;
+        line-height: 20px;
+        overflow-wrap: break-word;
+        position: relative;
+        min-width: 0px;
+        font-size: 15px;
+        text-align: inherit;
+        text-indent: 0;
+        font-weight: 400;
       }
 
       .profile-stat strong {
         color: var(--text-color);
+        font-family: "Source Han Sans CN", "Noto Sans CJK SC", "PingFang SC",
+          "Hiragino Sans GB", "Microsoft YaHei", sans-serif;
+        line-height: 20px;
+        overflow-wrap: break-word;
+        position: relative;
+        min-width: 0px;
+        font-size: 15px;
+        text-align: inherit;
+        text-indent: 0;
+        font-weight: 700;
       }
 
       .hashtag {
         color: var(--link-color);
         cursor: pointer;
+        font-family: "Source Han Sans CN", "Noto Sans CJK SC", "PingFang SC",
+          "Hiragino Sans GB", "Microsoft YaHei", sans-serif;
+        line-height: 20px;
+        overflow-wrap: break-word;
+        position: relative;
+        min-width: 0px;
+        font-size: 15px;
+        text-align: inherit;
+        text-indent: 0;
+        font-weight: 400;
+        text-decoration: none;
+        white-space: pre-line;
       }
 
       .hashtag:hover {
@@ -422,6 +669,15 @@
         color: var(--secondary-text-color);
         border-left: 2px solid transparent;
         padding-left: 12px;
+        font-family: "Source Han Sans CN", "Noto Sans CJK SC", "PingFang SC",
+          "Hiragino Sans GB", "Microsoft YaHei", sans-serif;
+        line-height: 20px;
+        overflow-wrap: break-word;
+        position: relative;
+        min-width: 0px;
+        text-align: inherit;
+        text-indent: 0;
+        font-weight: 400;
       }
 
       .tweet-relation.reply {
@@ -439,11 +695,31 @@
       .relation-text {
         font-weight: 500;
         margin-right: 8px;
+        font-family: "Source Han Sans CN", "Noto Sans CJK SC", "PingFang SC",
+          "Hiragino Sans GB", "Microsoft YaHei", sans-serif;
+        line-height: 20px;
+        overflow-wrap: break-word;
+        position: relative;
+        min-width: 0px;
+        font-size: 15px;
+        text-align: inherit;
+        text-indent: 0;
       }
 
       .relation-link {
-        color: #1d9bf0;
+        color: var(--link-color);
         text-decoration: none;
+        font-family: "Source Han Sans CN", "Noto Sans CJK SC", "PingFang SC",
+          "Hiragino Sans GB", "Microsoft YaHei", sans-serif;
+        line-height: 20px;
+        overflow-wrap: break-word;
+        position: relative;
+        min-width: 0px;
+        font-size: 15px;
+        text-align: inherit;
+        text-indent: 0;
+        font-weight: 400;
+        white-space: pre-line;
       }
 
       .relation-link:hover {
@@ -452,24 +728,78 @@
 
       /* Space链接样式 */
       .space-link {
-        color: var(--link-color);
-        font-weight: bold;
+        color: var(--space-link-color);
+        font-weight: 600;
         text-decoration: none;
-        background-color: rgba(29, 155, 240, 0.1);
-        padding: 4px 8px;
-        border-radius: 12px;
+        padding: 6px 10px;
+        border-radius: 16px;
         display: inline-flex;
         align-items: center;
         gap: 4px;
+        transition: all 0.2s ease;
+        font-size: 13px;
+        position: relative;
+        overflow: hidden;
+        font-family: "Source Han Sans CN", "Noto Sans CJK SC", "PingFang SC",
+          "Hiragino Sans GB", "Microsoft YaHei", sans-serif;
+        line-height: 20px;
+        overflow-wrap: break-word;
+        min-width: 0px;
+        text-align: inherit;
+        text-indent: 0;
+        white-space: pre-line;
       }
 
       .space-link:hover {
         text-decoration: underline;
-        background-color: rgba(29, 155, 240, 0.2);
+      }
+
+      /* 深色模式下的Space链接特殊样式 */
+      body:not(.light-mode) .space-link {
+        background-color: rgba(29, 155, 240, 0.08);
+        border: 1px solid rgba(29, 155, 240, 0.15);
+        box-shadow: 0 1px 3px rgba(29, 155, 240, 0.1);
+      }
+
+      body:not(.light-mode) .space-link:hover {
+        background-color: rgba(29, 155, 240, 0.15);
+        border-color: rgba(29, 155, 240, 0.25);
+        box-shadow: 0 2px 6px rgba(29, 155, 240, 0.2);
+        transform: translateY(-1px);
+      }
+
+      /* 浅色模式下的Space链接特殊样式 */
+      body.light-mode .space-link {
+        background-color: rgba(29, 155, 240, 0.06);
+        border: 1px solid rgba(29, 155, 240, 0.12);
+        box-shadow: 0 1px 2px rgba(29, 155, 240, 0.08);
+      }
+
+      body.light-mode .space-link:hover {
+        background-color: rgba(29, 155, 240, 0.12);
+        border-color: rgba(29, 155, 240, 0.2);
+        box-shadow: 0 2px 4px rgba(29, 155, 240, 0.15);
+        transform: translateY(-1px);
       }
 
       .space-link i {
         font-size: 12px;
+        color: var(--space-link-color);
+      }
+
+      /* Space链接的特殊标识 */
+      .space-link::before {
+        content: "🔊";
+        font-size: 12px;
+        margin-right: 4px;
+        opacity: 0.8;
+      }
+
+      /* Space链接的动画效果 */
+      .space-link:hover::before {
+        opacity: 1;
+        transform: scale(1.1);
+        transition: all 0.2s ease;
       }
 
       /* 主题切换按钮 */
@@ -492,30 +822,134 @@
         text-align: center;
         padding: 32px;
         color: var(--secondary-text-color);
+        font-family: "Source Han Sans CN", "Noto Sans CJK SC", "PingFang SC",
+          "Hiragino Sans GB", "Microsoft YaHei", sans-serif;
+        line-height: 20px;
+        overflow-wrap: break-word;
+        position: relative;
+        min-width: 0px;
+        font-size: 15px;
+        text-align: inherit;
+        text-indent: 0;
+        font-weight: 400;
       }
 
       .empty {
         text-align: center;
         padding: 64px 16px;
         color: var(--secondary-text-color);
+        font-family: "Source Han Sans CN", "Noto Sans CJK SC", "PingFang SC",
+          "Hiragino Sans GB", "Microsoft YaHei", sans-serif;
+        line-height: 20px;
+        overflow-wrap: break-word;
+        position: relative;
+        min-width: 0px;
+        font-size: 15px;
+        text-align: inherit;
+        text-indent: 0;
+        font-weight: 400;
       }
 
       .error {
-        background-color: #200914;
-        border: 1px solid #67060c;
-        color: #f4212e;
+        background-color: rgba(244, 33, 46, 0.1);
+        border: 1px solid rgba(244, 33, 46, 0.3);
+        color: var(--error-color);
         padding: 12px;
         margin: 16px;
         border-radius: 8px;
       }
 
       .success {
-        background-color: #071a14;
-        border: 1px solid #065535;
-        color: #00ba7c;
+        background-color: rgba(0, 186, 124, 0.1);
+        border: 1px solid rgba(0, 186, 124, 0.3);
+        color: var(--success-color);
         padding: 12px;
         margin: 16px;
         border-radius: 8px;
+        font-family: "Source Han Sans CN", "Noto Sans CJK SC", "PingFang SC",
+          "Hiragino Sans GB", "Microsoft YaHei", sans-serif;
+        line-height: 20px;
+        overflow-wrap: break-word;
+        position: relative;
+        min-width: 0px;
+        font-size: 15px;
+        text-align: inherit;
+        text-indent: 0;
+        font-weight: 400;
+      }
+
+      /* 滚动条样式 */
+      ::-webkit-scrollbar {
+        width: 8px;
+      }
+
+      ::-webkit-scrollbar-track {
+        background: transparent;
+      }
+
+      ::-webkit-scrollbar-thumb {
+        background-color: rgb(185, 202, 211);
+        border-radius: 4px;
+      }
+
+      ::-webkit-scrollbar-thumb:hover {
+        background-color: rgb(165, 182, 191);
+      }
+
+      /* 深色模式滚动条 */
+      body:not(.light-mode) ::-webkit-scrollbar-thumb {
+        background-color: rgb(83, 100, 113);
+      }
+
+      body:not(.light-mode) ::-webkit-scrollbar-thumb:hover {
+        background-color: rgb(113, 130, 143);
+      }
+
+      /* Twitter官方样式类 */
+      .r-37j5jr {
+        font-family: "Source Han Sans CN", "Noto Sans CJK SC", "PingFang SC",
+          "Hiragino Sans GB", "Microsoft YaHei", sans-serif;
+      }
+
+      .r-rjixqe {
+        line-height: 20px;
+      }
+
+      .r-qvutc0 {
+        overflow-wrap: break-word;
+      }
+
+      .r-bnwqim {
+        position: relative;
+      }
+
+      .r-bcqeeo {
+        min-width: 0px;
+      }
+
+      .r-a023e6 {
+        font-size: 15px;
+      }
+
+      .r-1ttztb7 {
+        text-align: inherit;
+        text-indent: 0;
+      }
+
+      .r-16dba41 {
+        font-weight: 400;
+      }
+
+      .r-1loqt21 {
+        cursor: pointer;
+      }
+
+      .r-12vffkv > * {
+        pointer-events: auto;
+      }
+
+      .r-12vffkv {
+        pointer-events: none !important;
       }
     </style>
   </head>
