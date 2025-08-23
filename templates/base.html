@@ -333,7 +333,7 @@
       .tweet-content {
         margin-left: 60px;
         margin-top: -30px;
-        white-space: pre-line;
+        white-space: normal;
         overflow-wrap: break-word;
         font-size: 15px;
         line-height: 20px;
@@ -344,6 +344,7 @@
         position: relative;
         font-family: "Source Han Sans CN", "Noto Sans CJK SC", "PingFang SC",
           "Hiragino Sans GB", "Microsoft YaHei", sans-serif;
+        margin-bottom: 4px;
       }
 
       .tweet-media {
@@ -401,7 +402,7 @@
 
       .tweet-stats {
         margin-left: 60px;
-        margin-top: 12px;
+        margin-top: 8px;
         display: flex;
         gap: 32px;
         color: var(--secondary-text-color);
@@ -873,6 +874,7 @@
       /* Space链接样式 */
       .space-link {
         margin-top: 10px;
+        margin-bottom: 10px;
         color: var(--space-link-color);
         font-weight: 600;
         text-decoration: none;
@@ -1172,7 +1174,6 @@
 
       /* 翻译功能样式 */
       .translation-controls {
-        margin-top: 8px;
         display: flex;
         align-items: center;
         gap: 8px;
@@ -1218,7 +1219,7 @@
       }
 
       .translated-content {
-        margin-top: 12px;
+        margin-top: 8px;
         padding: 12px;
         background: var(--hover-bg-color);
         border-radius: 8px;
@@ -1256,6 +1257,12 @@
         color: var(--text-color);
         line-height: 1.5;
         font-size: 14px;
+      }
+
+      .original-content {
+        margin-bottom: 0;
+        line-height: 1.4;
+        padding: 0;
       }
 
       .translation-loading {
@@ -1325,7 +1332,12 @@
       // 处理推文点击
       document.querySelectorAll(".tweet").forEach((tweet) => {
         tweet.addEventListener("click", function (e) {
-          if (!e.target.closest("a")) {
+          // 检查是否点击了链接、翻译按钮、语言选择器或其他交互元素
+          if (!e.target.closest("a") && 
+              !e.target.closest(".translate-btn") && 
+              !e.target.closest(".target-language") &&
+              !e.target.closest(".close-translation") &&
+              !e.target.closest(".translation-controls")) {
             const tweetId = this.dataset.tweetId;
             if (tweetId) {
               window.location.href = `/tweet/${tweetId}`;

@@ -191,6 +191,26 @@ def process_tweet_data(tweet_dict):
 
         return re.sub(space_link_pattern, replace_space_link, content)
 
+    # 处理推文内容中的空格和换行
+    def clean_tweet_content(content):
+        if not content:
+            return content
+
+        # 按行分割
+        lines = content.split("\n")
+        processed_lines = []
+
+        for line in lines:
+            # 去除行首和行尾的空格
+            line = line.strip()
+            # 将多个连续空格替换为单个空格
+            line = re.sub(r"\s+", " ", line)
+            processed_lines.append(line)
+
+        # 过滤掉空行，并用<br>连接
+        non_empty_lines = [line for line in processed_lines if line]
+        return "<br>".join(non_empty_lines)
+
     # 处理推文内容中的链接
     def process_links(content):
         if not content:
@@ -230,11 +250,15 @@ def process_tweet_data(tweet_dict):
 
     # 处理主推文内容
     if tweet_dict.get("content"):
+        tweet_dict["content"] = clean_tweet_content(tweet_dict["content"])
         tweet_dict["content"] = process_space_links(tweet_dict["content"])
         tweet_dict["content"] = process_links(tweet_dict["content"])
 
     # 处理回复推文内容
     if tweet_dict.get("reply_info") and tweet_dict["reply_info"].get("content"):
+        tweet_dict["reply_info"]["content"] = clean_tweet_content(
+            tweet_dict["reply_info"]["content"]
+        )
         tweet_dict["reply_info"]["content"] = process_space_links(
             tweet_dict["reply_info"]["content"]
         )
@@ -244,11 +268,26 @@ def process_tweet_data(tweet_dict):
 
     # 处理引用推文内容
     if tweet_dict.get("quote_info") and tweet_dict["quote_info"].get("content"):
+        tweet_dict["quote_info"]["content"] = clean_tweet_content(
+            tweet_dict["quote_info"]["content"]
+        )
         tweet_dict["quote_info"]["content"] = process_space_links(
             tweet_dict["quote_info"]["content"]
         )
         tweet_dict["quote_info"]["content"] = process_links(
             tweet_dict["quote_info"]["content"]
+        )
+
+    # 处理转发推文内容
+    if tweet_dict.get("retweet_info") and tweet_dict["retweet_info"].get("content"):
+        tweet_dict["retweet_info"]["content"] = clean_tweet_content(
+            tweet_dict["retweet_info"]["content"]
+        )
+        tweet_dict["retweet_info"]["content"] = process_space_links(
+            tweet_dict["retweet_info"]["content"]
+        )
+        tweet_dict["retweet_info"]["content"] = process_links(
+            tweet_dict["retweet_info"]["content"]
         )
 
     # 处理相关推文的头像URL
