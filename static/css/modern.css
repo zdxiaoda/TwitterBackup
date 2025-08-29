@@ -221,7 +221,6 @@ body {
 .tweet-author {
   display: flex;
   align-items: center;
-  flex-wrap: wrap;
   min-width: 0;
 }
 
