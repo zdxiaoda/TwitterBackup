@@ -384,16 +384,6 @@
 
         const originalText = tempDiv.textContent.trim();
 
-        // 调试：检查是否包含 YouTube 相关文本
-        if (
-          originalText.includes("Loading video") ||
-          originalText.includes("Please wait")
-        ) {
-          console.log(
-            "Warning: YouTube placeholder text detected in translation content:",
-            originalText
-          );
-        }
 
         const cacheKey = `${originalText}_${targetLang}`;
         if (translationCache[cacheKey]) {
