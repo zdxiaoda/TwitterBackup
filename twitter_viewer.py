@@ -274,14 +274,11 @@ def process_tweet_data(tweet_dict):
                 <iframe 
                     width="100%" 
                     height="315" 
-                    src="https://www.youtube.com/embed/{video_id}" 
                     frameborder="0" 
                     allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" 
                     allowfullscreen
-                    onload="handleYouTubeLoad(this)"
-                    onerror="handleYouTubeError(this)"
                 ></iframe>
-                <div class="youtube-placeholder youtube-loading" style="display: none;">
+                <div class="youtube-placeholder youtube-loading" style="display: flex;">
                     <div class="youtube-placeholder-content">
                         <i class="fas fa-spinner youtube-placeholder-icon"></i>
                         <div class="youtube-placeholder-text no-translate">Loading video...</div>
