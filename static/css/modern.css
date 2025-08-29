@@ -221,7 +221,6 @@ body {
 .tweet-author {
   display: flex;
   align-items: center;
-  gap: var(--space-1);
   flex-wrap: wrap;
   min-width: 0;
 }
@@ -1226,6 +1225,10 @@ body {
     grid-template-columns: 1fr;
   }
 
+  .tweet-info {
+    max-width: calc(100% - 55px);
+  }
+
   .youtube-embed iframe {
     height: 200px;
   }
@@ -1249,6 +1252,10 @@ body {
 
   .tweet {
     padding: var(--space-2) var(--space-3);
+  }
+
+  .tweet-info {
+    max-width: calc(100% - 50px);
   }
 
   .tweet-content {
