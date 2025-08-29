@@ -281,17 +281,17 @@ def process_tweet_data(tweet_dict):
                 <div class="youtube-placeholder youtube-loading" style="display: flex;">
                     <div class="youtube-placeholder-content">
                         <i class="fas fa-spinner youtube-placeholder-icon"></i>
-                        <div class="youtube-placeholder-text no-translate">Loading video...</div>
-                        <div class="youtube-placeholder-subtext no-translate">Please wait, connecting to YouTube</div>
+                        <div class="youtube-placeholder-text no-translate">正在加载视频...</div>
+                        <div class="youtube-placeholder-subtext no-translate">请稍候，正在连接到YouTube</div>
                     </div>
                 </div>
                 <div class="youtube-placeholder youtube-error" style="display: none;">
                     <div class="youtube-placeholder-content">
                         <i class="fas fa-exclamation-triangle youtube-placeholder-icon"></i>
-                        <div class="youtube-placeholder-text no-translate">Video loading failed</div>
-                        <div class="youtube-placeholder-subtext no-translate">Unable to access this YouTube video, may be network issue or video deleted</div>
+                        <div class="youtube-placeholder-text no-translate">视频加载失败</div>
+                        <div class="youtube-placeholder-subtext no-translate">无法访问此YouTube视频，可能是网络问题或视频已删除</div>
                         <button class="youtube-placeholder-button" onclick="retryYouTubeVideo(this)">
-                            <i class="fas fa-redo"></i> <span class="no-translate">Retry</span>
+                            <i class="fas fa-redo"></i> <span class="no-translate">重试</span>
                         </button>
                     </div>
                 </div>
