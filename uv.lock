@@ -180,6 +180,18 @@ wheels = [
 ]
 
 [[package]]
+name = "gallery-dl"
+version = "1.30.5"
+source = { registry = "https://mirrors.cloud.tencent.com/pypi/simple/" }
+dependencies = [
+    { name = "requests" },
+]
+sdist = { url = "https://mirrors.cloud.tencent.com/pypi/packages/44/a9/85ffacfe022f11c407efb3f8bb92948d2cb96ab973f92da96125112c4bb4/gallery_dl-1.30.5.tar.gz", hash = "sha256:ddcf0c654142df0854b9dcf233a7e629fbb00b382cc0659c0138df15ce16ad53" }
+wheels = [
+    { url = "https://mirrors.cloud.tencent.com/pypi/packages/06/9c/b7e72ab704bf6f1ff3adbb9c39b784c05e9ed7f5aea791f3873d1b5fc7d5/gallery_dl-1.30.5-py3-none-any.whl", hash = "sha256:184ec3dc2c66502e6b27c0b653b914d7fa56fa3d2f7a96fbbbc3f2a8b1f5137c" },
+]
+
+[[package]]
 name = "gitdb"
 version = "4.0.12"
 source = { registry = "https://mirrors.cloud.tencent.com/pypi/simple/" }
@@ -1013,6 +1025,7 @@ source = { virtual = "." }
 dependencies = [
     { name = "flask" },
     { name = "flask-sqlalchemy" },
+    { name = "gallery-dl" },
     { name = "openai" },
     { name = "pandas" },
     { name = "pathlib2" },
@@ -1024,6 +1037,7 @@ dependencies = [
 requires-dist = [
     { name = "flask", specifier = ">=2.0.0" },
     { name = "flask-sqlalchemy", specifier = ">=2.5.0" },
+    { name = "gallery-dl", specifier = ">=1.30.5" },
     { name = "openai", specifier = ">=1.0.0" },
     { name = "pandas", specifier = ">=1.5.0" },
     { name = "pathlib2", specifier = ">=2.3.5" },
